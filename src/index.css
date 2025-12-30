@@ -1,0 +1,76 @@
+/* src/index.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-gray-800;
+  }
+  
+  body {
+    @apply bg-black text-white font-sans antialiased;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    margin: 0;
+    padding: 0;
+  }
+  
+  #root {
+    min-height: 100vh;
+  }
+  
+  /* Custom scrollbar for webkit browsers */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-gray-900;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-700 rounded-full;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-600;
+  }
+}
+
+@layer components {
+  /* Glass morphism effect */
+  .glass {
+    @apply bg-gray-900/70 backdrop-blur-xl border border-gray-800;
+  }
+  
+  /* Gradient text */
+  .text-gradient-green {
+    @apply bg-gradient-to-r from-accent-green to-accent-green-light bg-clip-text text-transparent;
+  }
+  
+  .text-gradient-purple {
+    @apply bg-gradient-to-r from-accent-purple to-accent-purple-light bg-clip-text text-transparent;
+  }
+  
+  /* Button base */
+  .btn {
+    @apply px-6 py-3 rounded-2xl font-semibold transition-all duration-200 active:scale-95;
+  }
+  
+  .btn-primary {
+    @apply bg-accent-green text-black hover:bg-accent-green-light shadow-glow-green;
+  }
+  
+  /* Card base */
+  .card {
+    @apply bg-gray-900 rounded-3xl p-6 border border-gray-800;
+  }
+}
+
+@layer utilities {
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
