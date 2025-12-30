@@ -248,6 +248,7 @@ text
 
 ### Project Structure
 
+
 habit-tracker/
 ├── public/ # Static assets
 │ ├── icon-192.png # PWA icon (192x192)
@@ -288,7 +289,6 @@ habit-tracker/
 ├── eslint.config.js # ESLint rules
 ├── package.json # Dependencies
 └── README.md # This file
-
 text
 
 ### Available Scripts
@@ -662,27 +662,7 @@ Built with these amazing open-source projects:
 - [Vite PWA Plugin](https://vite-pwa-org.netlify.app/) - PWA integration
 
 Special thanks to the open-source community! 💙
-
 ---
-
-## 📬 Connect
-
-**Demo:** [Live App](https://habit-tracker-eight-xi.vercel.app/)  
-
----
-
-## ⭐ Support
-
-If you find this project useful:
-
-- ⭐ **Star this repository**
-- 🍴 **Fork and customize**
-- 📢 **Share with others**
-- 💬 **Open issues/PRs**
-- 🐦 **Tweet about it**
-
----
-
 
 <p align="center">
   <a href="https://habit-tracker-eight-xi.vercel.app/">View Demo</a> •
