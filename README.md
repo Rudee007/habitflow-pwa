@@ -245,48 +245,49 @@ netlify deploy --prod --dir=dist
 
 ### Project Structure
 
-
-```habit-tracker/
-├── public/ # Static assets
-│ ├── icon-192.png # PWA icon (192x192)
-│ ├── icon-512.png # PWA icon (512x512)
-│ └── apple-touch-icon.png # iOS icon (180x180)
+```
+habit-tracker/
+├── public/                       # Static assets
+│   ├── icon-192.png             # PWA icon (192x192)
+│   ├── icon-512.png             # PWA icon (512x512)
+│   └── apple-touch-icon.png     # iOS icon (180x180)
 │
 ├── src/
-│ ├── components/ # React components
-│ │ ├── HabitList.jsx # Main habit list
-│ │ ├── HabitCard.jsx # Individual habit card
-│ │ ├── Calendar.jsx # Calendar visualization
-│ │ ├── Settings.jsx # Settings panel
-│ │ ├── InstallPrompt.jsx # Custom install UI
-│ │ └── InstallButton.jsx # Floating install button
-│ │
-│ ├── store/ # State management
-│ │ └── habitStore.js # Zustand store
-│ │
-│ ├── utils/ # Helper functions
-│ │ ├── googleSheets.js # Sheets API integration
-│ │ ├── indexedDB.js # Local storage utilities
-│ │ ├── syncManager.js # Sync orchestration
-│ │ └── dateHelpers.js # Date utilities
-│ │
-│ ├── config/ # Configuration
-│ │ └── googleConfig.js # Google API credentials
-│ │
-│ ├── hooks/ # Custom React hooks
-│ │ └── useHabits.js # Habit management hook
-│ │
-│ ├── App.jsx # Main app component
-│ ├── main.jsx # Entry point
-│ └── index.css # Global styles
+│   ├── components/              # React components
+│   │   ├── HabitList.jsx       # Main habit list
+│   │   ├── HabitCard.jsx       # Individual habit card
+│   │   ├── Calendar.jsx        # Calendar visualization
+│   │   ├── Settings.jsx        # Settings panel
+│   │   ├── InstallPrompt.jsx   # Custom install UI
+│   │   └── InstallButton.jsx   # Floating install button
+│   │
+│   ├── store/                   # State management
+│   │   └── habitStore.js       # Zustand store
+│   │
+│   ├── utils/                   # Helper functions
+│   │   ├── googleSheets.js     # Sheets API integration
+│   │   ├── indexedDB.js        # Local storage utilities
+│   │   ├── syncManager.js      # Sync orchestration
+│   │   └── dateHelpers.js      # Date utilities
+│   │
+│   ├── config/                  # Configuration
+│   │   └── googleConfig.js     # Google API credentials
+│   │
+│   ├── hooks/                   # Custom React hooks
+│   │   └── useHabits.js        # Habit management hook
+│   │
+│   ├── App.jsx                  # Main app component
+│   ├── main.jsx                 # Entry point
+│   └── index.css                # Global styles
 │
-├── vite.config.js # Vite + PWA configuration
-├── tailwind.config.js # Tailwind CSS config
-├── postcss.config.js # PostCSS config
-├── eslint.config.js # ESLint rules
-├── package.json # Dependencies
-└── README.md # This file
+├── vite.config.js               # Vite + PWA configuration
+├── tailwind.config.js           # Tailwind CSS config
+├── postcss.config.js            # PostCSS config
+├── eslint.config.js             # ESLint rules
+├── package.json                 # Dependencies
+└── README.md                    # This file
 ```
+
 
 ### Available Scripts
 
