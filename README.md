@@ -8,7 +8,7 @@
 [![Vite](https://img.shields.io/badge/Vite-5-646cff)](https://vitejs.dev/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-**[🚀 Try Live Demo](https://habit-tracker-eight-xi.vercel.app/)** • **[📖 Documentation](#-quick-start)** • **[🐛 Report Bug](https://github.com/yourusername/habit-tracker/issues)**
+**[🚀 Try Live Demo](https://habit-tracker-eight-xi.vercel.app/)**
 
 ---
 
@@ -89,7 +89,6 @@ PWA: Workbox + Service Workers
 Icons: Lucide React
 Deployment: Vercel
 
-text
 
 **The Flow:**
 
@@ -112,8 +111,9 @@ text
 ### Installation
 
 Clone the repository
-git clone https://github.com/yourusername/habit-tracker.git
-cd habit-tracker
+git clone https://github.com/Rudee007/habitflow-pwa/tree/main
+
+`cd habit-tracker`
 
 Install dependencies
 npm install
@@ -121,7 +121,6 @@ npm install
 Start development server
 npm run dev
 
-text
 
 Visit `http://localhost:5173` - the app opens automatically! 🎉
 
@@ -183,7 +182,6 @@ scopes: [
 ].join(' ')
 };
 
-text
 
 ### Step 5: First Run
 
@@ -204,7 +202,6 @@ text
 
 npm run build
 
-text
 
 Creates optimized production build in `dist/` folder.
 
@@ -219,7 +216,7 @@ vercel login
 Deploy to production
 vercel --prod
 
-text
+
 
 **Or use GitHub integration:**
 1. Push code to GitHub
@@ -240,7 +237,7 @@ Option 2: CLI
 npm install -g netlify-cli
 netlify deploy --prod --dir=dist
 
-text
+
 
 ---
 
@@ -249,7 +246,7 @@ text
 ### Project Structure
 
 
-habit-tracker/
+```habit-tracker/
 ├── public/ # Static assets
 │ ├── icon-192.png # PWA icon (192x192)
 │ ├── icon-512.png # PWA icon (512x512)
@@ -289,7 +286,7 @@ habit-tracker/
 ├── eslint.config.js # ESLint rules
 ├── package.json # Dependencies
 └── README.md # This file
-text
+```
 
 ### Available Scripts
 
@@ -301,7 +298,6 @@ npm run preview # Preview production build locally
 Code Quality
 npm run lint # Run ESLint
 
-text
 
 ### Key Files Explained
 
@@ -338,7 +334,7 @@ theme_color: '#your-color',
 background_color: '#your-color',
 }
 
-text
+
 
 ### Replace App Icons
 
@@ -367,7 +363,7 @@ primary: {
 }
 }
 
-text
+
 
 ### Add App Screenshots
 
@@ -387,7 +383,7 @@ Build and preview
 npm run build
 npm run preview
 
-text
+
 
 Then in browser:
 1. Open DevTools (F12)
@@ -439,7 +435,7 @@ navigator.serviceWorker.getRegistrations()
 .then(regs => regs.forEach(reg => reg.unregister()))
 .then(() => location.reload());
 
-text
+
 
 Or manually:
 - DevTools → Application → Service Workers
@@ -486,7 +482,6 @@ console.log(gapi.auth2.getAuthInstance().isSignedIn.get());
 // Check permissions
 console.log(gapi.auth2.getAuthInstance().currentUser.get().getGrantedScopes());
 
-text
 
 ### Build Errors
 
@@ -502,14 +497,57 @@ sourcemap: false,
 chunkSizeWarningLimit: 1000
 }
 
-text
+
 
 **Module not found:**
 Clear and reinstall
 rm -rf node_modules package-lock.json
 npm install
 
-text
+
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Here's how to help:
+
+### Fork & Clone
+
+Fork on GitHub, then:
+git clone https://github.com/YOUR-USERNAME/habit-tracker.git
+cd habit-tracker
+git checkout -b feature/amazing-feature
+
+
+
+### Make Changes
+
+1. Write clean, readable code
+2. Follow existing patterns
+3. Test thoroughly
+4. Update documentation
+
+### Submit
+
+git add .
+git commit -m "Add: amazing feature"
+git push origin feature/amazing-feature
+
+
+
+Then open a Pull Request on GitHub!
+
+### Contribution Ideas
+
+- 🎨 New themes/color schemes
+- 📊 Advanced statistics (charts, graphs)
+- 🔔 Push notifications
+- 🌍 More language support
+- 📱 Better mobile gestures
+- ♿ Accessibility improvements
+- 🧪 Unit/integration tests
+- 📖 Better documentation
 
 ---
 
@@ -571,7 +609,7 @@ Accessibility: 90-95
 Best Practices: 100
 SEO: 100
 
-text
+
 
 ### Load Times
 
@@ -580,15 +618,13 @@ Cached Load: < 0.5 seconds
 Offline Load: Instant
 Time to Interactive: < 1 second
 
-text
-
 ### Bundle Sizes
 
 JavaScript: ~150KB (gzipped)
 CSS: ~10KB (gzipped)
 Total: ~160KB
 
-text
+
 
 ---
 
