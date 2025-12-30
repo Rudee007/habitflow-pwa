@@ -91,30 +91,6 @@ Deployment: Vercel
 
 text
 
-### How It Works
-
-┌─────────────────┐
-│ React UI │ ← User Interface (Vite + React)
-└────────┬────────┘
-│
-┌────▼─────┐
-│ Zustand │ ← State Management
-└────┬─────┘
-│
-┌────▼──────────┐
-│ IndexedDB │ ← Local Storage (Offline)
-└────┬──────────┘
-│
-┌────▼──────────────┐
-│ Service Worker │ ← Caching + Background Sync
-└────┬──────────────┘
-│
-┌────▼──────────────┐
-│ Google Sheets API │ ← Cloud Backup (Online)
-└───────────────────┘
-
-text
-
 **The Flow:**
 
 1. **User creates habit** → Saved instantly to IndexedDB
@@ -345,10 +321,6 @@ text
 - Authentication handling
 - Data sync logic
 
-**`src/components/InstallPrompt.jsx`**
-- Custom PWA install prompt
-- Better UX than browser default
-- Shows app features
 
 ---
 
@@ -541,49 +513,6 @@ text
 
 ---
 
-## 🤝 Contributing
-
-Contributions are welcome! Here's how to help:
-
-### Fork & Clone
-
-Fork on GitHub, then:
-git clone https://github.com/YOUR-USERNAME/habit-tracker.git
-cd habit-tracker
-git checkout -b feature/amazing-feature
-
-text
-
-### Make Changes
-
-1. Write clean, readable code
-2. Follow existing patterns
-3. Test thoroughly
-4. Update documentation
-
-### Submit
-
-git add .
-git commit -m "Add: amazing feature"
-git push origin feature/amazing-feature
-
-text
-
-Then open a Pull Request on GitHub!
-
-### Contribution Ideas
-
-- 🎨 New themes/color schemes
-- 📊 Advanced statistics (charts, graphs)
-- 🔔 Push notifications
-- 🌍 More language support
-- 📱 Better mobile gestures
-- ♿ Accessibility improvements
-- 🧪 Unit/integration tests
-- 📖 Better documentation
-
----
-
 ## 📚 Tech Stack Deep Dive
 
 ### Why These Technologies?
@@ -719,14 +648,6 @@ This project is perfect for:
 
 ---
 
-## 📜 License
-
-MIT License - see [LICENSE](LICENSE) file for details.
-
-**In short:** Free to use, modify, and distribute. Just keep the license file.
-
----
-
 ## 🙏 Acknowledgments
 
 Built with these amazing open-source projects:
@@ -746,10 +667,7 @@ Special thanks to the open-source community! 💙
 
 ## 📬 Connect
 
-**Project:** [GitHub Repository](https://github.com/yourusername/habit-tracker)  
 **Demo:** [Live App](https://habit-tracker-eight-xi.vercel.app/)  
-**Issues:** [Report Bug](https://github.com/yourusername/habit-tracker/issues)  
-**Discussions:** [GitHub Discussions](https://github.com/yourusername/habit-tracker/discussions)
 
 ---
 
@@ -765,43 +683,9 @@ If you find this project useful:
 
 ---
 
-## 🗺️ Roadmap
-
-### v1.1 (Coming Soon)
-- [ ] Advanced statistics dashboard
-- [ ] Habit templates
-- [ ] Export/import data (JSON/CSV)
-- [ ] Dark mode improvements
-
-### v1.2 (Planned)
-- [ ] Push notifications
-- [ ] Habit reminders
-- [ ] Multiple themes
-- [ ] Social sharing
-
-### v2.0 (Future)
-- [ ] Multi-language support (beyond 3)
-- [ ] Habit groups/categories
-- [ ] Advanced visualizations
-- [ ] Native mobile apps
-
-**Want to contribute?** Pick a feature and open a PR!
-
----
-
-<p align="center">
-  <strong>Built with ❤️ in India 🇮🇳</strong>
-</p>
 
 <p align="center">
   <a href="https://habit-tracker-eight-xi.vercel.app/">View Demo</a> •
-  <a href="#-quick-start">Quick Start</a> •
-  <a href="#-contributing">Contribute</a> •
-  <a href="https://github.com/yourusername/habit-tracker/issues">Report Issue</a>
-</p>
-
-<p align="center">
-  <sub>कृष्णं सदा सहायते ༗ ༗</sub>
 </p>
 
 ---
