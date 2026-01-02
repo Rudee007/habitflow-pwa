@@ -431,9 +431,10 @@ const Hyperspeed = ({
         this.bloomPass = new EffectPass(
           this.camera,
           new BloomEffect({
-            luminanceThreshold: 0.2,
-            luminanceSmoothing: 0,
-            resolutionScale: 1
+            luminanceThreshold: 0.05,
+            luminanceSmoothing: 0.9,
+            resolutionScale: 1,
+            intensity: 1.5
           })
         );
 

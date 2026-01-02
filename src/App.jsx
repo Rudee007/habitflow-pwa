@@ -11,6 +11,8 @@ import AnalyticsView from './components/AnalyticsView';
 import SettingsView from './components/SettingsView';
 import AddHabitModal from './components/AddHabitModal';
 import { Sparkles } from 'lucide-react';
+import HyperspeedBackground from "@/components/HyperspeedBackground";
+
 
 function App() {
   const [activeTab, setActiveTab] = useState('home');
@@ -79,8 +81,12 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="relative min-h-screen overflow-hidden">
+
+      <HyperspeedBackground/>
       {/* Main Container */}
+      <div className="relative z-10 bg-transparent">
+
       <div className="max-w-2xl mx-auto px-4 pt-6 pb-24">
         {/* Home View */}
         {activeTab === 'home' && (
@@ -134,6 +140,7 @@ function App() {
         onClose={() => setShowAddModal(false)}
       />
     </div>
+  </div>
   );
 }
 
