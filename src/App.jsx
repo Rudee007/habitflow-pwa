@@ -84,6 +84,7 @@ function App() {
     <div className="relative min-h-screen overflow-hidden">
 
       <HyperspeedBackground/>
+      {/* background added  */}
       {/* Main Container */}
       <div className="relative z-10 bg-transparent">
 
