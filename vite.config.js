@@ -12,7 +12,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icon-192.png', 'icon-512.png', 'apple-touch-icon.png'],
+      includeAssets: ['icon-192-v2.png', 'icon-512-v2.png', 'apple-touch-icon-v2.png'],
       
       manifest: {
         name: 'My Habit Tracker',
@@ -27,31 +27,31 @@ export default defineConfig({
         
         icons: [
           {
-            src: '/icon-192.png',
+            src: '/icon-192-v2.png',
             sizes: '192x192',
             type: 'image/png',
             purpose: 'any'
           },
           {
-            src: '/icon-512.png',
+            src: '/icon-512-v2.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any'
           },
           {
-            src: '/icon-192.png',
+            src: '/icon-192-v2.png',
             sizes: '192x192',
             type: 'image/png',
             purpose: 'maskable'
           },
           {
-            src: '/icon-512.png',
+            src: '/icon-512-v2.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'maskable'
           },
           {
-            src: '/apple-touch-icon.png',
+            src: '/apple-touch-icon-v2.png',
             sizes: '180x180',
             type: 'image/png',
             purpose: 'any'
