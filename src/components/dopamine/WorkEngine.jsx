@@ -1,13 +1,10 @@
-// src/components/dopamine/WorkEngine.jsx
 import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Plus, Zap, Shield } from 'lucide-react';
-import { clsx } from 'clsx';
 import useMarketStore from '../../store/marketStore';
 import { TaskCard } from './TaskCard';
-import { MissionControlModal } from './MissionControlModal';
 
-export const WorkEngine = () => {
+export const WorkEngine = ({ onNavigate }) => {
   const points = useMarketStore(state => state.points);
   const todos = useMarketStore(state => state.todos);
   const notTodos = useMarketStore(state => state.notTodos);
@@ -15,36 +12,35 @@ export const WorkEngine = () => {
   const failNotTodo = useMarketStore(state => state.failNotTodo);
   
   const [activeTab, setActiveTab] = useState('todo'); 
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const activeTodos = todos.filter(t => !t.completed);
   const hasTasks = activeTab === 'todo' ? activeTodos.length > 0 : notTodos.length > 0;
 
   return (
-    <div className="flex flex-col h-full bg-black px-4 pt-6 pb-24 overflow-hidden relative">
+    <div className="flex flex-col h-full bg-transparent px-4 pt-6 pb-24 overflow-hidden relative">
       
-      {/* HEADER: The Scoreboard */}
+      {/* HEADER: Scoreboard */}
       <div className="flex justify-between items-end mb-8 flex-shrink-0">
         <div>
-          <h2 className="text-gray-400 text-xs font-bold tracking-widest uppercase mb-1">Current Balance</h2>
-          <div className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-accent-green to-accent-cyan font-sans tracking-tight">
-            {points.toLocaleString()} <span className="text-2xl text-gray-500 font-bold">PTS</span>
+          <h2 className="text-gray-400 text-xs font-bold tracking-widest uppercase mb-1 drop-shadow-md">Current Balance</h2>
+          <div className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-accent-green to-accent-cyan font-sans tracking-tight drop-shadow-lg filter">
+            {points.toLocaleString()} <span className="text-2xl text-gray-400 font-bold ml-1">PTS</span>
           </div>
         </div>
         <div className="flex flex-col items-end">
-          <div className="text-accent-purple font-black tracking-wider">LEVEL 5</div>
+          <div className="text-accent-purple font-black tracking-wider drop-shadow-md">LEVEL 5</div>
           <div className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">ARCHITECT</div>
         </div>
       </div>
 
       {/* TOGGLE */}
-      <div className="flex bg-gray-900 p-1 rounded-full mb-6 relative flex-shrink-0">
+      <div className="flex bg-white/5 backdrop-blur-md border border-white/10 p-1 rounded-full mb-6 relative flex-shrink-0 shadow-xl">
         <motion.div 
-          className="absolute bg-gray-800 rounded-full h-[calc(100%-8px)] top-1 bottom-1 w-[48%]"
+          className="absolute rounded-full h-[calc(100%-8px)] top-1 bottom-1 w-[48%]"
           initial={false}
           animate={{ 
             x: activeTab === 'todo' ? '2%' : '100%',
-            backgroundColor: activeTab === 'todo' ? '#2C2C2E' : '#2C2C2E' 
+            backgroundColor: activeTab === 'todo' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.1)' 
           }}
           transition={{ type: "spring", stiffness: 400, damping: 30 }}
         />
@@ -52,14 +48,14 @@ export const WorkEngine = () => {
           onClick={() => setActiveTab('todo')} 
           className="flex-1 py-3 text-center z-10 font-bold text-sm flex justify-center items-center gap-2 transition-colors duration-200"
         >
-           <Zap size={16} className={activeTab === 'todo' ? "text-accent-green" : "text-gray-500"} fill={activeTab === 'todo' ? "currentColor" : "none"} /> 
+           <Zap size={16} className={activeTab === 'todo' ? "text-accent-green drop-shadow-glow" : "text-gray-500"} fill={activeTab === 'todo' ? "currentColor" : "none"} /> 
            <span className={activeTab === 'todo' ? "text-white" : "text-gray-500"}>ATTACK</span>
         </button>
         <button 
           onClick={() => setActiveTab('avoid')} 
           className="flex-1 py-3 text-center z-10 font-bold text-sm flex justify-center items-center gap-2 transition-colors duration-200"
         >
-           <Shield size={16} className={activeTab === 'avoid' ? "text-accent-red" : "text-gray-500"} fill={activeTab === 'avoid' ? "currentColor" : "none"} />
+           <Shield size={16} className={activeTab === 'avoid' ? "text-accent-red drop-shadow-glow" : "text-gray-500"} fill={activeTab === 'avoid' ? "currentColor" : "none"} />
            <span className={activeTab === 'avoid' ? "text-white" : "text-gray-500"}>DEFENSE</span>
         </button>
       </div>
@@ -67,31 +63,52 @@ export const WorkEngine = () => {
       {/* ACTION BUTTON */}
       <div className="mb-6 flex-shrink-0">
         <button 
-          onClick={() => setIsModalOpen(true)}
-          className="w-full py-4 rounded-3xl bg-gray-900 border border-gray-800 flex items-center justify-center gap-3 text-gray-400 hover:text-white hover:border-accent-green transition-all group active:scale-95"
+          onClick={() => onNavigate(activeTab)}
+          className="w-full py-4 rounded-3xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 flex items-center justify-center gap-3 text-gray-400 hover:text-white hover:border-accent-green/50 transition-all group active:scale-95 shadow-lg"
         >
-          <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center group-hover:bg-accent-green group-hover:text-black transition-colors shadow-lg">
+          <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-accent-green group-hover:text-black transition-colors shadow-inner">
             <Plus size={20} strokeWidth={3} />
           </div>
-          <span className="font-bold tracking-wide text-sm">INITIALIZE NEW MISSION</span>
+          <span className="font-bold tracking-wide text-sm drop-shadow-md">{activeTab === 'todo' ? "INITIALIZE NEW MISSION": "LOG NEW THREAT"}</span>
         </button>
       </div>
 
-      {/* TASK LIST */}
+      {/* TASK LIST (With Smooth Transitions) */}
       <div className="flex-1 overflow-y-auto min-h-0 pr-1 pb-20 scrollbar-hide">
-        <h3 className="text-gray-500 text-[10px] font-bold mb-4 uppercase tracking-widest sticky top-0 bg-black/95 backdrop-blur-sm py-2 z-10">
+        <h3 className="text-gray-500 text-[10px] font-bold mb-4 uppercase tracking-widest sticky top-0 bg-transparent backdrop-blur-md py-2 z-10 rounded-b-lg">
           {activeTab === 'todo' ? "High Priority Operations" : "Active Threats"}
         </h3>
         
-        <AnimatePresence mode="popLayout" initial={false}>
+        {/* KEY CHANGE: mode="wait" ensures old list leaves before new list enters */}
+        <AnimatePresence mode="wait">
           {activeTab === 'todo' ? (
-            activeTodos.map(task => (
-              <TaskCard key={task.id} task={task} type="todo" onComplete={completeTodo} />
-            ))
+            <motion.div
+              key="todo-list"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.2 }}
+            >
+              <AnimatePresence>
+                {activeTodos.map(task => (
+                  <TaskCard key={task.id} task={task} type="todo" onComplete={completeTodo} />
+                ))}
+              </AnimatePresence>
+            </motion.div>
           ) : (
-            notTodos.map(task => (
-              <TaskCard key={task.id} task={task} type="avoid" onFail={failNotTodo} />
-            ))
+            <motion.div
+              key="threat-list"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+            >
+              <AnimatePresence>
+                {notTodos.map(task => (
+                  <TaskCard key={task.id} task={task} type="avoid" onFail={failNotTodo} />
+                ))}
+              </AnimatePresence>
+            </motion.div>
           )}
         </AnimatePresence>
 
@@ -99,20 +116,14 @@ export const WorkEngine = () => {
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="text-center text-gray-600 mt-10 border border-dashed border-gray-800 rounded-2xl p-8"
+            transition={{ delay: 0.2 }}
+            className="text-center text-gray-500 mt-10 border border-dashed border-white/10 rounded-2xl p-8 bg-white/5 backdrop-blur-sm"
           >
             <p className="text-sm font-medium">No active missions.</p>
             <p className="text-xs mt-1 opacity-50">System standby...</p>
           </motion.div>
         )}
       </div>
-
-      {/* MODAL (Now rendered unconditionally, it handles its own visibility via Portal) */}
-      <MissionControlModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        defaultType={activeTab}
-      />
     </div>
   );
 };

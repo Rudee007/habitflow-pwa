@@ -1,6 +1,7 @@
+// src/store/marketStore.js
 import { create } from 'zustand';
 import marketStorageService from '../services/marketStorageService';
-import googleSheetsService from '../services/googleSheetsService'; // Will update this later
+import googleSheetsService from '../services/googleSheetsService'; 
 import { drawLottery, getTaskReward } from '../utils/marketMath';
 
 const useMarketStore = create((set, get) => ({
@@ -11,8 +12,6 @@ const useMarketStore = create((set, get) => ({
   todos: [],
   notTodos: [],
   isLoading: true,
-  
-  // Stats
   streak: 0,
   rank: 'Apprentice',
 
@@ -23,36 +22,35 @@ const useMarketStore = create((set, get) => ({
     const shop = marketStorageService.getShopItems();
 
     set({
-      points: economy.points,
-      inventory: economy.inventory,
+      points: economy.points || 0,
+      inventory: economy.inventory || [],
       streak: economy.streak || 0,
-      todos: tasks.todos,
-      notTodos: tasks.notTodos,
-      shopItems: shop,
+      todos: tasks.todos || [],
+      notTodos: tasks.notTodos || [],
+      shopItems: shop || [],
       isLoading: false
     });
   },
 
-  // --- ACTIONS: TO-DO (The Work Engine) ---
-addTodo: (task) => {
-  const newTodo = {
-    id: `todo-${Date.now()}`,
-    title: task.title,
-    priority: task.priority || 'medium', // low, medium, high
-    completed: false,
-    notes: task.notes || '',
-    // PSYCHOLOGY: Implementation Intentions
-    protocol: {
-      when: task.when || '',   // "At 9:00 AM"
-      where: task.where || ''  // "In the library"
-    },
-    createdAt: new Date().toISOString()
-  };
-  
-  const updatedTodos = [...get().todos, newTodo];
-  set({ todos: updatedTodos });
-  marketStorageService.saveDailyTasks({ todos: updatedTodos, notTodos: get().notTodos });
-},
+  // --- ACTIONS: TO-DO ---
+  addTodo: (task) => {
+    const newTodo = {
+      id: `todo-${Date.now()}`,
+      title: task.title,
+      priority: task.priority || 'medium',
+      completed: false,
+      notes: task.notes || '',
+      protocol: {
+        when: task.when || '',
+        where: task.where || ''
+      },
+      createdAt: new Date().toISOString()
+    };
+    
+    const updatedTodos = [...get().todos, newTodo];
+    set({ todos: updatedTodos });
+    marketStorageService.saveDailyTasks({ todos: updatedTodos, notTodos: get().notTodos });
+  },
 
   completeTodo: (id) => {
     const { todos, points } = get();
@@ -62,29 +60,30 @@ addTodo: (task) => {
     const task = todos[taskIndex];
     const reward = getTaskReward(task.priority);
 
-    // 1. Update Task
     const updatedTodos = [...todos];
     updatedTodos[taskIndex] = { ...task, completed: true };
 
-    // 2. Update Economy
     const newPoints = points + reward;
 
     set({ todos: updatedTodos, points: newPoints });
     
-    // 3. Persist
     marketStorageService.saveDailyTasks({ todos: updatedTodos, notTodos: get().notTodos });
-    marketStorageService.saveEconomy({ points: newPoints, inventory: get().inventory });
+    marketStorageService.saveEconomy({ 
+        points: newPoints, 
+        inventory: get().inventory, 
+        streak: get().streak 
+    });
   },
 
   // --- ACTIONS: NOT-TO-DO (The Shield) ---
- addNotTodo: (task) => {
+  addNotTodo: (task) => {
     const newNotTodo = {
       id: `not-${Date.now()}`,
       title: task.title,
       cost: task.cost || 50,
       notes: task.notes || '',
-      failed: false,
-      paid: false
+      failed: false, // Initial state: "Shield Active"
+      paid: false    // Penalty paid?
     };
 
     const updated = [...get().notTodos, newNotTodo];
@@ -92,35 +91,58 @@ addTodo: (task) => {
     marketStorageService.saveDailyTasks({ todos: get().todos, notTodos: updated });
   },
 
+  // ⚠️ CRITICAL: LOGIC FOR FAILING A NOT-TO-DO
   failNotTodo: (id) => {
     const { notTodos, points } = get();
-    const task = notTodos.find(t => t.id === id);
-    if (!task) return;
-
-    // PSYCHOLOGY: If you didn't buy it from the store, you pay DOUBLE (Sin Tax)
-    const penalty = task.cost * 2;
-    const newPoints = Math.max(0, points - penalty); // No negative debt for now
-
-    const updated = notTodos.map(t => t.id === id ? { ...t, failed: true } : t);
-
-    set({ notTodos: updated, points: newPoints });
+    const taskIndex = notTodos.findIndex(t => t.id === id);
     
-    marketStorageService.saveDailyTasks({ todos: get().todos, notTodos: updated });
-    marketStorageService.saveEconomy({ points: newPoints, inventory: get().inventory });
+    // Safety check: if task doesn't exist or is already failed, stop.
+    if (taskIndex === -1 || notTodos[taskIndex].failed) return;
+
+    const task = notTodos[taskIndex];
+
+    // PSYCHOLOGY: The "Sin Tax"
+    // If you do the bad habit without buying a pass, you pay the cost (or double, depending on your strictness)
+    // For now, let's stick to the defined cost.
+    const penalty = task.cost; 
     
-    return penalty; // Return value to show in UI alert
+    // Calculate new balance (Prevent going below 0 for now)
+    const newPoints = Math.max(0, points - penalty);
+
+    // Update the task state to "Failed"
+    const updatedNotTodos = [...notTodos];
+    updatedNotTodos[taskIndex] = { 
+        ...task, 
+        failed: true, 
+        paid: true // Mark as paid so we don't deduct again
+    };
+
+    // Update State
+    set({ 
+        notTodos: updatedNotTodos, 
+        points: newPoints 
+    });
+    
+    // Persist Changes
+    marketStorageService.saveDailyTasks({ todos: get().todos, notTodos: updatedNotTodos });
+    marketStorageService.saveEconomy({ 
+        points: newPoints, 
+        inventory: get().inventory, 
+        streak: get().streak 
+    });
+    
+    // Optional: Return penalty to show a toast notification
+    return penalty;
   },
 
-  // --- ACTIONS: MARKETPLACE (The Gacha) ---
+  // --- ACTIONS: MARKETPLACE ---
   buyLotteryTicket: (cost = 100) => {
     const { points, shopItems, inventory } = get();
 
     if (points < cost) return { success: false, message: "Not enough points!" };
 
-    // 1. Draw the item
     const wonItem = drawLottery(shopItems);
     
-    // 2. Create the "Ticket"
     const ticket = {
       id: `ticket-${Date.now()}`,
       itemId: wonItem.id,
@@ -129,32 +151,36 @@ addTodo: (task) => {
       isUsed: false
     };
 
-    // 3. Update State
     const newPoints = points - cost;
     const newInventory = [...inventory, ticket];
 
     set({ points: newPoints, inventory: newInventory });
     
-    // 4. Persist
-    marketStorageService.saveEconomy({ points: newPoints, inventory: newInventory });
+    marketStorageService.saveEconomy({ 
+        points: newPoints, 
+        inventory: newInventory, 
+        streak: get().streak 
+    });
 
     return { success: true, item: wonItem };
   },
 
   useInventoryItem: (ticketId) => {
     const { inventory } = get();
-    // Remove the ticket from inventory (Consumption)
     const newInventory = inventory.filter(t => t.id !== ticketId);
     
     set({ inventory: newInventory });
-    marketStorageService.saveEconomy({ points: get().points, inventory: newInventory });
+    marketStorageService.saveEconomy({ 
+        points: get().points, 
+        inventory: newInventory, 
+        streak: get().streak 
+    });
   },
 
-  // --- SYNC (Placeholder for now) ---
+  // --- SYNC ---
   syncMarketToSheets: async () => {
-    // We will implement the specific GSheets logic in the next step
-    // calling googleSheetsService.syncMarket(...)
     console.log("Syncing Market Data to Sheets...");
+    // Future implementation: call googleSheetsService.syncMarket(...)
   }
 }));
 

@@ -1,11 +1,10 @@
-// src/App.jsx
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, ShoppingBag, Target, Trophy } from 'lucide-react';
+import { Sparkles, ShoppingBag, Target } from 'lucide-react';
 import useHabitStore from './store/habitStore';
-import useMarketStore from './store/marketStore'; // Import Market Store
+import useMarketStore from './store/marketStore';
 import googleSheetsService from './services/googleSheetsService';
-import marketStorageService from './services/marketStorageService';
 
 // Components
 import BottomNav from './components/BottomNav';
@@ -18,19 +17,46 @@ import SettingsView from './components/SettingsView';
 import AddHabitModal from './components/AddHabitModal';
 import HyperspeedBackground from "@/components/HyperspeedBackground";
 
-// Import Dopamine Components (Assuming they are in src/components/dopamine/)
+// Dopamine Components
 import { WorkEngine } from './components/dopamine/WorkEngine';
 import { GachaMarket } from './components/dopamine/GachaMarket';
+import { MissionControlPage } from './components/dopamine/MissionControlPage';
 
 // --- Wrapper Component for the Game Zone ---
 const DopamineZone = () => {
-  const [mode, setMode] = useState('work'); // 'work' | 'store'
-  const { points } = useMarketStore();
+  const [mode, setMode] = useState('work'); // 'work' | 'store' | 'create'
+  const [createType, setCreateType] = useState('todo'); // Stores 'todo' or 'avoid'
+
+  // Handler to switch to create mode with specific context
+  const handleCreate = (type) => {
+    setCreateType(type);
+    setMode('create');
+  };
+
+  // Full Screen Portal for Creation Page
+  if (mode === 'create') {
+    return createPortal(
+      <motion.div 
+        key="create"
+        initial={{ opacity: 0, y: '100%' }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: '100%' }}
+        transition={{ type: "spring", damping: 25, stiffness: 300 }}
+        className="fixed inset-0 z-[9999] bg-black/95 backdrop-blur-sm"
+      >
+        <MissionControlPage 
+           initialType={createType} 
+           onBack={() => setMode('work')} 
+        />
+      </motion.div>,
+      document.body
+    );
+  }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full relative">
       {/* Top Toggle Switch */}
-      <div className="flex items-center justify-between mb-6 bg-gray-900/80 backdrop-blur-md p-1.5 rounded-2xl border border-gray-800">
+      <div className="flex items-center justify-between mb-6 bg-gray-900/80 backdrop-blur-md p-1.5 rounded-2xl border border-gray-800 shrink-0">
         <button
           onClick={() => setMode('work')}
           className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all ${
@@ -56,8 +82,8 @@ const DopamineZone = () => {
       </div>
 
       {/* Content Area */}
-      <div className="relative">
-         <AnimatePresence mode="wait">
+      <div className="relative flex-1 min-h-0">
+         <AnimatePresence mode="wait" initial={false}>
             {mode === 'work' ? (
               <motion.div
                 key="work"
@@ -65,8 +91,10 @@ const DopamineZone = () => {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.2 }}
+                className="h-full"
               >
-                <WorkEngine />
+                {/* Pass the handleCreate function properly */}
+                <WorkEngine onNavigate={handleCreate} />
               </motion.div>
             ) : (
               <motion.div
@@ -75,6 +103,7 @@ const DopamineZone = () => {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 20 }}
                 transition={{ duration: 0.2 }}
+                className="h-full"
               >
                 <GachaMarket />
               </motion.div>
@@ -93,25 +122,16 @@ function App() {
   const { initialize: initHabits, isLoading: loadingHabits } = useHabitStore();
   const { initialize: initMarket, isLoading: loadingMarket } = useMarketStore();
 
-  // Initialize Data
   useEffect(() => {
     initHabits();
     initMarket();
-    
-    // Initialize Google APIs
     if (window.gapi) googleSheetsService.gapiLoaded();
     if (window.google?.accounts) googleSheetsService.gisLoaded();
-
     window.gapiLoaded = () => googleSheetsService.gapiLoaded();
     window.gisLoaded = () => googleSheetsService.gisLoaded();
-
-    return () => {
-      delete window.gapiLoaded;
-      delete window.gisLoaded;
-    };
+    return () => { delete window.gapiLoaded; delete window.gisLoaded; };
   }, [initHabits, initMarket]);
 
-  // Tab Switch Handler
   const handleTabChange = (tab) => {
     if (tab === 'add') {
       setShowAddModal(true);
@@ -143,7 +163,7 @@ function App() {
       </div>
 
       {/* Main Content Container */}
-      <div className="relative z-10 max-w-2xl mx-auto px-4 pt-6 pb-28 min-h-screen">
+      <div className="relative z-10 max-w-2xl mx-auto px-4 pt-6 pb-28 min-h-screen flex flex-col">
         
         {/* VIEW: HOME (Habits) */}
         {activeTab === 'home' && (
@@ -152,7 +172,6 @@ function App() {
             animate={{ opacity: 1 }} 
             className="space-y-6"
           >
-            {/* Header */}
             <div className="flex items-center justify-between pb-2">
               <div>
                 <h1 className="text-3xl font-black tracking-tight text-white mb-1">
@@ -169,24 +188,22 @@ function App() {
                 </div>
               </div>
             </div>
-
-            {/* Stats */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <StreakCounter />
               <SleepTracker />
             </div>
-
             <MonthSelector />
             <HabitGrid />
           </motion.div>
         )}
 
-        {/* VIEW: DOPAMINE ZONE (Todo/Market) */}
+        {/* VIEW: DOPAMINE ZONE */}
         {activeTab === 'Todo' && (
           <motion.div 
+            key="zone"
             initial={{ opacity: 0, scale: 0.98 }} 
             animate={{ opacity: 1, scale: 1 }}
-            className="h-full"
+            className="h-full flex-1 min-h-0"
           >
             <DopamineZone />
           </motion.div>
@@ -208,9 +225,10 @@ function App() {
       </div>
 
       {/* Navigation */}
-      <BottomNav activeTab={activeTab} onTabChange={handleTabChange} />
+      <div className="relative z-50">
+         <BottomNav activeTab={activeTab} onTabChange={handleTabChange} />
+      </div>
 
-      {/* Modals */}
       <AddHabitModal open={showAddModal} onClose={() => setShowAddModal(false)} />
     </div>
   );
