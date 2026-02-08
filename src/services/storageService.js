@@ -9,7 +9,6 @@ class StorageService {
     this.init();
   }
 
-  // Initialize storage with default structure
   init() {
     if (!this.isAvailable()) {
       console.error('LocalStorage is not available');
@@ -195,7 +194,6 @@ class StorageService {
     return data.months[monthKey]?.goals || [];
   }
 
-  // Export all data as JSON
   exportData() {
     const data = this.getData();
     const blob = new Blob([JSON.stringify(data, null, 2)], {

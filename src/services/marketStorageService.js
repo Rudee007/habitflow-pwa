@@ -2,23 +2,18 @@
 import { getTodayKey } from '../utils/dateHelpers';
 
 const KEYS = {
-  ECONOMY: 'market_economy_v1',      // Points, Inventory, Streak, Rank
-  TASKS: 'market_daily_tasks_v1',    // Todos, Not-To-Dos
-  SHOP: 'market_shop_config_v1',     // Store Items
+  ECONOMY: 'market_economy_v1',
+  TASKS: 'market_daily_tasks_v1',
+  SHOP: 'market_shop_config_v1',
   LAST_RESET: 'market_last_reset_date'
 };
 
 const marketStorageService = {
-  // --- ECONOMY (Permanent Data) ---
+  // ... (keep getEconomy, saveEconomy, getShopItems, saveShopItems as is) ...
   getEconomy: () => {
     try {
       const data = localStorage.getItem(KEYS.ECONOMY);
-      return data ? JSON.parse(data) : { 
-        points: 0, 
-        inventory: [], 
-        streak: 0,
-        level: 'Apprentice' 
-      };
+      return data ? JSON.parse(data) : { points: 0, inventory: [], streak: 0, level: 'Apprentice' };
     } catch (e) { return { points: 0, inventory: [], streak: 0, level: 'Apprentice' }; }
   },
 
@@ -26,7 +21,6 @@ const marketStorageService = {
     localStorage.setItem(KEYS.ECONOMY, JSON.stringify(data));
   },
 
-  // --- SHOP CONFIG (Semi-Permanent) ---
   getShopItems: () => {
     try {
       const data = localStorage.getItem(KEYS.SHOP);
@@ -43,34 +37,30 @@ const marketStorageService = {
     localStorage.setItem(KEYS.SHOP, JSON.stringify(items));
   },
 
-  // --- DAILY TASKS (Resets Daily) ---
+  // --- DAILY TASKS ---
   getDailyTasks: () => {
-    const today = getTodayKey(); // e.g., "2025-10-25"
+    const today = getTodayKey();
     const lastReset = localStorage.getItem(KEYS.LAST_RESET);
     
     const savedTasks = localStorage.getItem(KEYS.TASKS);
     let tasks = savedTasks ? JSON.parse(savedTasks) : { todos: [], notTodos: [] };
 
-    // RESET LOGIC: If the date has changed, reset the board
     if (lastReset !== today) {
       console.log("🌞 New Day Detected: Resetting Daily Tasks...");
       
-      // 1. Reset Todos: Uncheck them for the new day
       const freshTodos = (tasks.todos || []).map(t => ({ 
         ...t, 
         completed: false 
       }));
       
-      // 2. Reset Not-To-Dos: Clear failure status so the Shield is active again
+      // RESET NOT-TO-DOS: Reset failCount to 0 for the new day
       const freshNotTodos = (tasks.notTodos || []).map(t => ({ 
         ...t, 
-        failed: false, 
-        paid: false // They haven't paid the penalty yet today
+        failCount: 0 
       }));
 
       tasks = { todos: freshTodos, notTodos: freshNotTodos };
       
-      // Save the new state immediately
       localStorage.setItem(KEYS.TASKS, JSON.stringify(tasks));
       localStorage.setItem(KEYS.LAST_RESET, today);
     }

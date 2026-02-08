@@ -32,7 +32,7 @@ const useMarketStore = create((set, get) => ({
     });
   },
 
-  // --- ACTIONS: TO-DO ---
+  // --- ACTIONS: TO-DO (Work Engine) ---
   addTodo: (task) => {
     const newTodo = {
       id: `todo-${Date.now()}`,
@@ -50,6 +50,40 @@ const useMarketStore = create((set, get) => ({
     const updatedTodos = [...get().todos, newTodo];
     set({ todos: updatedTodos });
     marketStorageService.saveDailyTasks({ todos: updatedTodos, notTodos: get().notTodos });
+  },
+
+  // Add these inside the create(...) object:
+
+  addShopItem: (item) => {
+    const newItem = {
+      id: `item-${Date.now()}`,
+      name: item.name,
+      desireLevel: item.desireLevel || 5,
+      type: 'consumable'
+    };
+    const updatedShop = [...get().shopItems, newItem];
+    set({ shopItems: updatedShop });
+    marketStorageService.saveShopItems(updatedShop);
+  },
+
+  removeShopItem: (id) => {
+    const updatedShop = get().shopItems.filter(i => i.id !== id);
+    set({ shopItems: updatedShop });
+    marketStorageService.saveShopItems(updatedShop);
+  },
+  
+deleteTask: (id, type) => {
+    const { todos, notTodos } = get();
+    
+    if (type === 'todo') {
+      const updatedTodos = todos.filter(t => t.id !== id);
+      set({ todos: updatedTodos });
+      marketStorageService.saveDailyTasks({ todos: updatedTodos, notTodos });
+    } else {
+      const updatedNotTodos = notTodos.filter(t => t.id !== id);
+      set({ notTodos: updatedNotTodos });
+      marketStorageService.saveDailyTasks({ todos, notTodos: updatedNotTodos });
+    }
   },
 
   completeTodo: (id) => {
@@ -82,8 +116,7 @@ const useMarketStore = create((set, get) => ({
       title: task.title,
       cost: task.cost || 50,
       notes: task.notes || '',
-      failed: false, // Initial state: "Shield Active"
-      paid: false    // Penalty paid?
+      failCount: 0, // NEW: Track how many times we failed
     };
 
     const updated = [...get().notTodos, newNotTodo];
@@ -91,39 +124,34 @@ const useMarketStore = create((set, get) => ({
     marketStorageService.saveDailyTasks({ todos: get().todos, notTodos: updated });
   },
 
-  // ⚠️ CRITICAL: LOGIC FOR FAILING A NOT-TO-DO
+  // ⚠️ UPDATED LOGIC: Allow Multiple Failures
   failNotTodo: (id) => {
     const { notTodos, points } = get();
     const taskIndex = notTodos.findIndex(t => t.id === id);
     
-    // Safety check: if task doesn't exist or is already failed, stop.
-    if (taskIndex === -1 || notTodos[taskIndex].failed) return;
+    if (taskIndex === -1) return;
 
     const task = notTodos[taskIndex];
-
-    // PSYCHOLOGY: The "Sin Tax"
-    // If you do the bad habit without buying a pass, you pay the cost (or double, depending on your strictness)
-    // For now, let's stick to the defined cost.
     const penalty = task.cost; 
     
-    // Calculate new balance (Prevent going below 0 for now)
+    // 1. Deduct Points (Allow going into debt or stop at 0, your choice. Here stopping at 0)
     const newPoints = Math.max(0, points - penalty);
 
-    // Update the task state to "Failed"
+    // 2. Update Task: Increment the failure count
     const updatedNotTodos = [...notTodos];
     updatedNotTodos[taskIndex] = { 
         ...task, 
-        failed: true, 
-        paid: true // Mark as paid so we don't deduct again
+        failCount: (task.failCount || 0) + 1, // Increment count
+        lastFailedAt: new Date().toISOString() // Optional: track time
     };
 
-    // Update State
+    // 3. Update State
     set({ 
         notTodos: updatedNotTodos, 
         points: newPoints 
     });
     
-    // Persist Changes
+    // 4. Persist
     marketStorageService.saveDailyTasks({ todos: get().todos, notTodos: updatedNotTodos });
     marketStorageService.saveEconomy({ 
         points: newPoints, 
@@ -131,7 +159,7 @@ const useMarketStore = create((set, get) => ({
         streak: get().streak 
     });
     
-    // Optional: Return penalty to show a toast notification
+    // Return penalty for UI alerts
     return penalty;
   },
 
@@ -180,7 +208,6 @@ const useMarketStore = create((set, get) => ({
   // --- SYNC ---
   syncMarketToSheets: async () => {
     console.log("Syncing Market Data to Sheets...");
-    // Future implementation: call googleSheetsService.syncMarket(...)
   }
 }));
 

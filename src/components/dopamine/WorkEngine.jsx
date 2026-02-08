@@ -1,3 +1,4 @@
+// src/components/dopamine/WorkEngine.jsx
 import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Plus, Zap, Shield } from 'lucide-react';
@@ -10,6 +11,7 @@ export const WorkEngine = ({ onNavigate }) => {
   const notTodos = useMarketStore(state => state.notTodos);
   const completeTodo = useMarketStore(state => state.completeTodo);
   const failNotTodo = useMarketStore(state => state.failNotTodo);
+  const deleteTask = useMarketStore(state => state.deleteTask); // <--- IMPORT DELETE
   
   const [activeTab, setActiveTab] = useState('todo'); 
 
@@ -19,7 +21,8 @@ export const WorkEngine = ({ onNavigate }) => {
   return (
     <div className="flex flex-col h-full bg-transparent px-4 pt-6 pb-24 overflow-hidden relative">
       
-      {/* HEADER: Scoreboard */}
+      {/* ... Header, Toggle, and Action Button remain unchanged ... */}
+      {/* (Copy them from previous step or leave as is) */}
       <div className="flex justify-between items-end mb-8 flex-shrink-0">
         <div>
           <h2 className="text-gray-400 text-xs font-bold tracking-widest uppercase mb-1 drop-shadow-md">Current Balance</h2>
@@ -69,17 +72,18 @@ export const WorkEngine = ({ onNavigate }) => {
           <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-accent-green group-hover:text-black transition-colors shadow-inner">
             <Plus size={20} strokeWidth={3} />
           </div>
-          <span className="font-bold tracking-wide text-sm drop-shadow-md">{activeTab === 'todo' ? "INITIALIZE NEW MISSION": "LOG NEW THREAT"}</span>
+          <span className="font-bold tracking-wide text-sm drop-shadow-md">
+            {activeTab === 'todo' ? "INITIALIZE NEW MISSION" : "LOG NEW THREAT"}
+          </span>
         </button>
       </div>
 
-      {/* TASK LIST (With Smooth Transitions) */}
+      {/* TASK LIST */}
       <div className="flex-1 overflow-y-auto min-h-0 pr-1 pb-20 scrollbar-hide">
         <h3 className="text-gray-500 text-[10px] font-bold mb-4 uppercase tracking-widest sticky top-0 bg-transparent backdrop-blur-md py-2 z-10 rounded-b-lg">
           {activeTab === 'todo' ? "High Priority Operations" : "Active Threats"}
         </h3>
         
-        {/* KEY CHANGE: mode="wait" ensures old list leaves before new list enters */}
         <AnimatePresence mode="wait">
           {activeTab === 'todo' ? (
             <motion.div
@@ -91,7 +95,13 @@ export const WorkEngine = ({ onNavigate }) => {
             >
               <AnimatePresence>
                 {activeTodos.map(task => (
-                  <TaskCard key={task.id} task={task} type="todo" onComplete={completeTodo} />
+                  <TaskCard 
+                    key={task.id} 
+                    task={task} 
+                    type="todo" 
+                    onComplete={completeTodo} 
+                    onDelete={deleteTask} // <--- PASS DELETE PROP
+                  />
                 ))}
               </AnimatePresence>
             </motion.div>
@@ -105,7 +115,13 @@ export const WorkEngine = ({ onNavigate }) => {
             >
               <AnimatePresence>
                 {notTodos.map(task => (
-                  <TaskCard key={task.id} task={task} type="avoid" onFail={failNotTodo} />
+                  <TaskCard 
+                    key={task.id} 
+                    task={task} 
+                    type="avoid" 
+                    onFail={failNotTodo} 
+                    onDelete={deleteTask} // <--- PASS DELETE PROP
+                  />
                 ))}
               </AnimatePresence>
             </motion.div>
