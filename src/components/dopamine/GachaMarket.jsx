@@ -243,19 +243,17 @@ export const GachaMarket = () => {
         </AnimatePresence>
       </div>
 
-      {/* --- INVENTORY (Horizontal Snap Scroll) --- */}
       <div className="h-auto min-h-[240px] bg-[#080808] border-t border-white/5 flex flex-col relative z-20 shadow-[0_-20px_40px_-15px_rgba(0,0,0,1)]">
         <div className="px-6 py-4 flex items-center justify-between relative z-10">
            <div className="flex items-center gap-2">
              <div className="p-1.5 rounded bg-amber-500/10 border border-amber-500/20">
                <PackageOpen size={12} className="text-amber-500" />
              </div>
-             <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">Storage_Locker</h3>
+             <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">Storage_Locker2.0</h3>
            </div>
            <span className="text-[10px] text-gray-600 font-mono">{inventory.length} ITEMS</span>
         </div>
         
-        {/* Scrollable Container */}
         <div className="flex-1 relative group">
            {inventory.length === 0 ? (
              <div className="absolute inset-0 flex flex-col items-center justify-center opacity-40">
@@ -269,7 +267,6 @@ export const GachaMarket = () => {
                 ref={inventoryRef}
                 className="flex items-center gap-4 px-6 pb-8 overflow-x-auto snap-x snap-mandatory scrollbar-hide h-full"
              >
-               {/* Reverse inventory to show newest first if desired, or keep as is */}
                {[...inventory].reverse().map((ticket, index) => (
                  <VaultItem 
                    key={ticket.id} 
