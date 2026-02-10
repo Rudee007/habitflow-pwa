@@ -4,7 +4,11 @@ import marketStorageService from '../services/marketStorageService';
 import googleSheetsService from '../services/googleSheetsService'; 
 import { drawLottery, getTaskReward } from '../utils/marketMath';
 
+// Helper for robust ID generation
+const generateId = (prefix) => `${prefix}-${crypto.randomUUID ? crypto.randomUUID() : Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
 const useMarketStore = create((set, get) => ({
+
   // --- STATE ---
   points: 0,
   inventory: [],
@@ -17,25 +21,30 @@ const useMarketStore = create((set, get) => ({
 
   // --- INITIALIZATION ---
   initialize: () => {
-    const economy = marketStorageService.getEconomy();
-    const tasks = marketStorageService.getDailyTasks();
-    const shop = marketStorageService.getShopItems();
+    try {
+      const economy = marketStorageService.getEconomy();
+      const tasks = marketStorageService.getDailyTasks();
+      const shop = marketStorageService.getShopItems();
 
-    set({
-      points: economy.points || 0,
-      inventory: economy.inventory || [],
-      streak: economy.streak || 0,
-      todos: tasks.todos || [],
-      notTodos: tasks.notTodos || [],
-      shopItems: shop || [],
-      isLoading: false
-    });
+      set({
+        points: economy.points || 0,
+        inventory: economy.inventory || [],
+        streak: economy.streak || 0,
+        todos: tasks.todos || [],
+        notTodos: tasks.notTodos || [],
+        shopItems: shop || [],
+        isLoading: false
+      });
+    } catch (error) {
+      console.error("Failed to initialize market store:", error);
+      set({ isLoading: false });
+    }
   },
 
   // --- ACTIONS: TO-DO (Work Engine) ---
   addTodo: (task) => {
     const newTodo = {
-      id: `todo-${Date.now()}`,
+      id: generateId('todo'),
       title: task.title,
       priority: task.priority || 'medium',
       completed: false,
@@ -47,134 +56,178 @@ const useMarketStore = create((set, get) => ({
       createdAt: new Date().toISOString()
     };
     
-    const updatedTodos = [...get().todos, newTodo];
-    set({ todos: updatedTodos });
-    marketStorageService.saveDailyTasks({ todos: updatedTodos, notTodos: get().notTodos });
+    set((state) => {
+      const updatedTodos = [...state.todos, newTodo];
+      // Side effect: Save to storage
+      marketStorageService.saveDailyTasks({ 
+        todos: updatedTodos, 
+        notTodos: state.notTodos 
+      });
+      return { todos: updatedTodos };
+    });
   },
-
-  // Add these inside the create(...) object:
 
   addShopItem: (item) => {
     const newItem = {
-      id: `item-${Date.now()}`,
+      id: generateId('item'),
       name: item.name,
       desireLevel: item.desireLevel || 5,
       type: 'consumable'
     };
-    const updatedShop = [...get().shopItems, newItem];
-    set({ shopItems: updatedShop });
-    marketStorageService.saveShopItems(updatedShop);
+
+    set((state) => {
+      const updatedShop = [...state.shopItems, newItem];
+      marketStorageService.saveShopItems(updatedShop);
+      return { shopItems: updatedShop };
+    });
   },
 
   removeShopItem: (id) => {
-    const updatedShop = get().shopItems.filter(i => i.id !== id);
-    set({ shopItems: updatedShop });
-    marketStorageService.saveShopItems(updatedShop);
+    set((state) => {
+      const updatedShop = state.shopItems.filter(i => i.id !== id);
+      marketStorageService.saveShopItems(updatedShop);
+      return { shopItems: updatedShop };
+    });
   },
   
-deleteTask: (id, type) => {
-    const { todos, notTodos } = get();
-    
-    if (type === 'todo') {
-      const updatedTodos = todos.filter(t => t.id !== id);
-      set({ todos: updatedTodos });
-      marketStorageService.saveDailyTasks({ todos: updatedTodos, notTodos });
-    } else {
-      const updatedNotTodos = notTodos.filter(t => t.id !== id);
-      set({ notTodos: updatedNotTodos });
-      marketStorageService.saveDailyTasks({ todos, notTodos: updatedNotTodos });
-    }
+  deleteTask: (id, type) => {
+    set((state) => {
+      const isTodo = type === 'todo';
+      
+      // Filter the correct list
+      const updatedTodos = isTodo 
+        ? state.todos.filter(t => t.id !== id) 
+        : state.todos;
+        
+      const updatedNotTodos = !isTodo 
+        ? state.notTodos.filter(t => t.id !== id) 
+        : state.notTodos;
+
+      // Save to storage
+      marketStorageService.saveDailyTasks({ 
+        todos: updatedTodos, 
+        notTodos: updatedNotTodos 
+      });
+
+      return { 
+        todos: updatedTodos, 
+        notTodos: updatedNotTodos 
+      };
+    });
   },
 
   completeTodo: (id) => {
-    const { todos, points } = get();
+    // 1. Get fresh state to avoid race conditions
+    const { todos, points, streak, inventory, notTodos } = get();
+    
     const taskIndex = todos.findIndex(t => t.id === id);
-    if (taskIndex === -1 || todos[taskIndex].completed) return;
+    if (taskIndex === -1) return; // Task not found
+    if (todos[taskIndex].completed) return; // Already completed
 
     const task = todos[taskIndex];
     const reward = getTaskReward(task.priority);
 
+    // 2. Create immutable updates
     const updatedTodos = [...todos];
     updatedTodos[taskIndex] = { ...task, completed: true };
-
     const newPoints = points + reward;
 
+    // 3. Update State
     set({ todos: updatedTodos, points: newPoints });
     
-    marketStorageService.saveDailyTasks({ todos: updatedTodos, notTodos: get().notTodos });
+    // 4. Persistence
+    marketStorageService.saveDailyTasks({ todos: updatedTodos, notTodos });
     marketStorageService.saveEconomy({ 
         points: newPoints, 
-        inventory: get().inventory, 
-        streak: get().streak 
+        inventory, 
+        streak 
     });
   },
 
   // --- ACTIONS: NOT-TO-DO (The Shield) ---
   addNotTodo: (task) => {
     const newNotTodo = {
-      id: `not-${Date.now()}`,
+      id: generateId('not'),
       title: task.title,
       cost: task.cost || 50,
       notes: task.notes || '',
-      failCount: 0, // NEW: Track how many times we failed
+      failCount: 0,
     };
 
-    const updated = [...get().notTodos, newNotTodo];
-    set({ notTodos: updated });
-    marketStorageService.saveDailyTasks({ todos: get().todos, notTodos: updated });
+    set((state) => {
+      const updated = [...state.notTodos, newNotTodo];
+      marketStorageService.saveDailyTasks({ 
+        todos: state.todos, 
+        notTodos: updated 
+      });
+      return { notTodos: updated };
+    });
   },
 
-  // ⚠️ UPDATED LOGIC: Allow Multiple Failures
   failNotTodo: (id) => {
-    const { notTodos, points } = get();
-    const taskIndex = notTodos.findIndex(t => t.id === id);
+    // 1. Get fresh state
+    const { notTodos, points, todos, inventory, streak } = get();
     
-    if (taskIndex === -1) return;
+    const taskIndex = notTodos.findIndex(t => t.id === id);
+    if (taskIndex === -1) return 0;
 
     const task = notTodos[taskIndex];
     const penalty = task.cost; 
     
-    // 1. Deduct Points (Allow going into debt or stop at 0, your choice. Here stopping at 0)
+    // 2. Calculate Math (Stop at 0 to prevent negative debt, or remove Math.max to allow debt)
     const newPoints = Math.max(0, points - penalty);
 
-    // 2. Update Task: Increment the failure count
+    // 3. Update Task
     const updatedNotTodos = [...notTodos];
     updatedNotTodos[taskIndex] = { 
         ...task, 
-        failCount: (task.failCount || 0) + 1, // Increment count
-        lastFailedAt: new Date().toISOString() // Optional: track time
+        failCount: (task.failCount || 0) + 1,
+        lastFailedAt: new Date().toISOString()
     };
 
-    // 3. Update State
+    // 4. Update State
     set({ 
         notTodos: updatedNotTodos, 
         points: newPoints 
     });
     
-    // 4. Persist
-    marketStorageService.saveDailyTasks({ todos: get().todos, notTodos: updatedNotTodos });
+    // 5. Persist
+    marketStorageService.saveDailyTasks({ todos, notTodos: updatedNotTodos });
     marketStorageService.saveEconomy({ 
         points: newPoints, 
-        inventory: get().inventory, 
-        streak: get().streak 
+        inventory, 
+        streak 
     });
     
-    // Return penalty for UI alerts
     return penalty;
   },
 
   // --- ACTIONS: MARKETPLACE ---
   buyLotteryTicket: (cost = 100) => {
-    const { points, shopItems, inventory } = get();
+    // 1. Get fresh state immediately
+    const { points, shopItems, inventory, streak } = get();
 
-    if (points < cost) return { success: false, message: "Not enough points!" };
+    // 2. Validation Guards
+    if (shopItems.length === 0) {
+      return { success: false, message: "Shop is empty! Add items in Admin." };
+    }
+    if (points < cost) {
+      return { success: false, message: "Not enough credits!" };
+    }
 
+    // 3. Draw Logic
     const wonItem = drawLottery(shopItems);
     
+    // Guard against lottery failure
+    if (!wonItem) {
+        return { success: false, message: "Lottery draw failed." };
+    }
+    
     const ticket = {
-      id: `ticket-${Date.now()}`,
+      id: generateId('ticket'),
       itemId: wonItem.id,
       name: wonItem.name,
+      desireLevel: wonItem.desireLevel, // Store rarity snapshot
       wonAt: new Date().toISOString(),
       isUsed: false
     };
@@ -182,32 +235,44 @@ deleteTask: (id, type) => {
     const newPoints = points - cost;
     const newInventory = [...inventory, ticket];
 
+    // 4. Update State
     set({ points: newPoints, inventory: newInventory });
     
+    // 5. Persist
     marketStorageService.saveEconomy({ 
         points: newPoints, 
         inventory: newInventory, 
-        streak: get().streak 
+        streak 
     });
 
     return { success: true, item: wonItem };
   },
 
   useInventoryItem: (ticketId) => {
-    const { inventory } = get();
-    const newInventory = inventory.filter(t => t.id !== ticketId);
-    
-    set({ inventory: newInventory });
-    marketStorageService.saveEconomy({ 
-        points: get().points, 
-        inventory: newInventory, 
-        streak: get().streak 
+    // Functional update ensures we don't delete an item from a stale inventory array
+    set((state) => {
+        const newInventory = state.inventory.filter(t => t.id !== ticketId);
+        
+        marketStorageService.saveEconomy({ 
+            points: state.points, 
+            inventory: newInventory, 
+            streak: state.streak 
+        });
+
+        return { inventory: newInventory };
     });
   },
 
   // --- SYNC ---
   syncMarketToSheets: async () => {
-    console.log("Syncing Market Data to Sheets...");
+    try {
+        const state = get();
+        console.log("Syncing Market Data to Sheets...");
+        // Implement actual sync logic here using state.todos, etc.
+        // await googleSheetsService.sync(state);
+    } catch (e) {
+        console.error("Sync failed", e);
+    }
   }
 }));
 
