@@ -8,7 +8,9 @@ export const MissionControlPage = ({ onBack, initialType = 'todo' }) => {
   const { addTodo, addNotTodo } = useMarketStore();
   
   // State
-  const [type, setType] = useState(initialType); // 'todo' | 'avoid'
+  const [type, setType] = useState(initialType
+    
+  ); // 'todo' | 'avoid'
   const [title, setTitle] = useState('');
   const [priority, setPriority] = useState('medium');
   const [cost, setCost] = useState(50);
