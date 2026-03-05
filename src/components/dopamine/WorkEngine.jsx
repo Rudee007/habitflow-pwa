@@ -1,147 +1,248 @@
 // src/components/dopamine/WorkEngine.jsx
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Plus, Zap, Shield } from 'lucide-react';
+import { Zap, Shield, ChevronDown, Edit3 } from 'lucide-react';
 import useMarketStore from '../../store/marketStore';
 import { TaskCard } from './TaskCard';
 
-export const WorkEngine = ({ onNavigate }) => {
-  const points = useMarketStore(state => state.points);
-  const todos = useMarketStore(state => state.todos);
-  const notTodos = useMarketStore(state => state.notTodos);
-  
-  // Actions
-  const completeTodo = useMarketStore(state => state.completeTodo);
-  const failNotTodo = useMarketStore(state => state.failNotTodo);
-  const deleteTask = useMarketStore(state => state.deleteTask);
-  
-  const [activeTab, setActiveTab] = useState('todo'); 
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-  // Filter out completed todos so they don't clutter the list
-  const activeTodos = todos.filter(t => !t.completed);
+// Build 14 days back and 30 days forward
+const buildCalendarDays = (pivot) => {
+  const days = [];
+  for (let i = -14; i <= 30; i++) {
+    const d = new Date(pivot);
+    d.setDate(pivot.getDate() + i);
+    days.push(new Date(d));
+  }
+  return days;
+};
+
+export const WorkEngine = ({ onNavigate }) => {
+  const points = useMarketStore(s => s.points);
+  const todos = useMarketStore(s => s.todos);
+  const notTodos = useMarketStore(s => s.notTodos);
+  const completeTodo = useMarketStore(s => s.completeTodo);
+  const failNotTodo = useMarketStore(s => s.failNotTodo);
+  const deleteTask = useMarketStore(s => s.deleteTask);
+
+  const today = new Date();
+  const [activeTab, setActiveTab] = useState('todo');
+  const [selectedDate, setSelectedDate] = useState(new Date(today));
   
-  // Determine lists based on tab
+  const scrollRef = useRef(null);
+  const activeDateRef = useRef(null);
+
+  const calDays = buildCalendarDays(today);
+  const activeTodos = todos.filter(t => !t.completed);
   const displayList = activeTab === 'todo' ? activeTodos : notTodos;
   const hasTasks = displayList.length > 0;
 
-  return (
-    <div className="flex flex-col h-full bg-transparent px-4 pt-6 pb-24 overflow-hidden relative">
+  const isSameDay = (a, b) =>
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate();
+
+  const isPast = (d) => d < today && !isSameDay(d, today);
+  const monthLabel = selectedDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+  // Auto-scroll the calendar to center the selected date on load
+  useEffect(() => {
+    if (activeDateRef.current && scrollRef.current) {
+      const container = scrollRef.current;
+      const activeEl = activeDateRef.current;
+      const scrollPosition = activeEl.offsetLeft - (container.offsetWidth / 2) + (activeEl.offsetWidth / 2);
       
-      {/* HEADER SECTION */}
-      <div className="flex justify-between items-end mb-8 flex-shrink-0">
+      container.scrollTo({ left: scrollPosition, behavior: 'smooth' });
+    }
+  }, [selectedDate]);
+
+  return (
+    <div
+      style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif' }}
+      className="flex flex-col h-full bg-transparent pb-16 overflow-hidden relative"
+    >
+      {/* ───── HEADER: Balance + Add Button ───── */}
+      <div className="flex justify-between items-center px-5 pt-8 mb-6 flex-shrink-0 z-10">
         <div>
-          <h2 className="text-gray-400 text-xs font-bold tracking-widest uppercase mb-1 drop-shadow-md">Current Balance</h2>
-          <div className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-accent-green to-accent-cyan font-sans tracking-tight drop-shadow-lg filter">
-            {points.toLocaleString()} <span className="text-2xl text-gray-400 font-bold ml-1">PTS</span>
+          <p className="text-[10px] font-semibold tracking-[0.14em] uppercase text-gray-500 mb-1 drop-shadow-md">
+            Current Balance
+          </p>
+          <div className="flex items-baseline gap-2 drop-shadow-lg">
+            <span className="text-5xl font-black tracking-tight text-white leading-none">
+              {points.toLocaleString()}
+            </span>
+            <span className="text-sm font-bold text-gray-400 tracking-widest">PTS</span>
           </div>
         </div>
+
+        {/* REPLACED: Level Badge is now a sleek Add Button */}
         <div className="flex flex-col items-end">
-          <div className="text-accent-purple font-black tracking-wider drop-shadow-md">LEVEL 5</div>
-          <div className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">ARCHITECT</div>
+          <button
+            onClick={() => onNavigate(activeTab)}
+            className="flex items-center gap-2 px-4 py-3 rounded-[1rem] transition-all active:scale-95 border"
+            style={{
+              background: activeTab === 'todo' ? 'rgba(146,232,42,0.1)' : 'rgba(252,108,116,0.1)',
+              borderColor: activeTab === 'todo' ? 'rgba(146,232,42,0.3)' : 'rgba(252,108,116,0.3)',
+              color: activeTab === 'todo' ? '#92E82A' : '#FC6C74',
+            }}
+          >
+            <Edit3 size={16} strokeWidth={2.5} />
+            <span className="text-[11px] font-black uppercase tracking-wider">
+              {activeTab === 'todo' ? 'Draft' : 'Log'}
+            </span>
+          </button>
         </div>
       </div>
 
-      {/* TOGGLE TABS */}
-      <div className="flex bg-white/5 backdrop-blur-md border border-white/10 p-1 rounded-full mb-6 relative flex-shrink-0 shadow-xl">
-        {/* Animated Background slider */}
-        <div 
-          className={`absolute top-1 bottom-1 rounded-full w-[48%] bg-white/10 transition-all duration-300 ease-spring ${activeTab === 'todo' ? 'left-1' : 'left-[51%]'}`}
+      {/* ───── CALENDAR STRIP ───── */}
+      <div className="flex-shrink-0 px-5 mb-5 relative z-10">
+        <div className="flex items-center justify-between mb-3">
+          <button className="flex items-center gap-1 text-sm font-bold text-white drop-shadow-md">
+            {monthLabel}
+            <ChevronDown size={14} className="text-gray-400" />
+          </button>
+          <span
+            className="text-[10px] font-bold tracking-widest uppercase transition-colors drop-shadow-md"
+            style={{ color: activeTab === 'todo' ? '#92E82A' : '#FC6C74' }}
+          >
+            {activeTab === 'todo' ? 'Operations' : 'Threats'}
+          </span>
+        </div>
+
+        <div
+          ref={scrollRef}
+          className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide snap-x"
+          style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}
+        >
+          {calDays.map((d, i) => {
+            const isSelected = isSameDay(d, selectedDate);
+            const isToday = isSameDay(d, today);
+            const past = isPast(d);
+
+            return (
+              <button
+                key={i}
+                ref={isSelected ? activeDateRef : null}
+                onClick={() => setSelectedDate(new Date(d))}
+                className="flex flex-col items-center flex-shrink-0 rounded-[1.2rem] transition-all duration-300 snap-center backdrop-blur-md"
+                style={{
+                  width: 48,
+                  padding: '10px 0',
+                  background: isSelected
+                    ? '#92E82A'
+                    : isToday
+                    ? 'rgba(146,232,42,0.15)'
+                    : 'rgba(255,255,255,0.03)',
+                  border: isSelected
+                    ? 'none'
+                    : isToday
+                    ? '1px solid rgba(146,232,42,0.4)'
+                    : '1px solid rgba(255,255,255,0.05)',
+                  transform: isSelected ? 'scale(1.05)' : 'scale(1)',
+                  boxShadow: isSelected ? '0 10px 20px rgba(146,232,42,0.3)' : '0 4px 10px rgba(0,0,0,0.1)'
+                }}
+              >
+                <span
+                  className="text-[9px] font-bold tracking-wider mb-1"
+                  style={{ color: isSelected ? '#000' : past ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.6)' }}
+                >
+                  {DAYS[d.getDay()].toUpperCase()}
+                </span>
+                <span
+                  className="text-lg font-black leading-none"
+                  style={{ color: isSelected ? '#000' : past ? 'rgba(255,255,255,0.3)' : isToday ? '#fff' : 'rgba(255,255,255,0.9)' }}
+                >
+                  {d.getDate()}
+                </span>
+                <div
+                  className="rounded-full mt-1.5 transition-colors"
+                  style={{
+                    width: 4, height: 4,
+                    background: isSelected ? '#00000044' : isToday ? '#92E82A' : 'transparent',
+                  }}
+                />
+              </button>
+            );
+          })}
+        </div>
+        
+        {/* Edge fade gradients for calendar */}
+        <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-black/80 to-transparent pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-black/80 to-transparent pointer-events-none" />
+      </div>
+
+      {/* ───── ATTACK / DEFENSE TOGGLE ───── */}
+      <div className="mx-5 flex rounded-[1.2rem] mb-5 flex-shrink-0 p-1 bg-black/40 backdrop-blur-md border border-white/10 relative z-10 shadow-lg">
+        {/* Animated background pill */}
+        <motion.div 
+          className="absolute top-1 bottom-1 rounded-xl bg-white/10 shadow-inner"
+          initial={false}
+          animate={{ 
+            x: activeTab === 'todo' ? '0%' : '100%', 
+            width: 'calc(50% - 4px)' 
+          }}
+          transition={{ type: "spring", stiffness: 400, damping: 30 }}
         />
         
-        <button 
-          onClick={() => setActiveTab('todo')} 
-          className="flex-1 py-3 text-center z-10 font-bold text-sm flex justify-center items-center gap-2 transition-colors duration-200"
-        >
-           <Zap size={16} className={activeTab === 'todo' ? "text-accent-green drop-shadow-glow" : "text-gray-500"} /> 
-           <span className={activeTab === 'todo' ? "text-white" : "text-gray-500"}>ATTACK</span>
-        </button>
-        <button 
-          onClick={() => setActiveTab('avoid')} 
-          className="flex-1 py-3 text-center z-10 font-bold text-sm flex justify-center items-center gap-2 transition-colors duration-200"
-        >
-           <Shield size={16} className={activeTab === 'avoid' ? "text-accent-red drop-shadow-glow" : "text-gray-500"} />
-           <span className={activeTab === 'avoid' ? "text-white" : "text-gray-500"}>DEFENSE</span>
-        </button>
-      </div>
-
-      {/* ADD BUTTON */}
-      <div className="mb-6 flex-shrink-0">
-        <button 
-          onClick={() => onNavigate(activeTab)}
-          className="w-full py-4 rounded-3xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 flex items-center justify-center gap-3 text-gray-400 hover:text-white hover:border-accent-green/50 transition-all group active:scale-95 shadow-lg"
-        >
-          <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-accent-green group-hover:text-black transition-colors shadow-inner">
-            <Plus size={20} strokeWidth={3} />
-          </div>
-          <span className="font-bold tracking-wide text-sm drop-shadow-md">
-            {activeTab === 'todo' ? "INITIALIZE NEW MISSION" : "LOG NEW THREAT"}
-          </span>
-        </button>
-      </div>
-
-      {/* TASK LIST CONTAINER */}
-      <div className="flex-1 overflow-y-auto min-h-0 pr-1 pb-20 scrollbar-hide">
-        <h3 className="text-gray-500 text-[10px] font-bold mb-4 uppercase tracking-widest sticky top-0 bg-[#050505]/80 backdrop-blur-md py-2 z-10">
-          {activeTab === 'todo' ? "High Priority Operations" : "Active Threats"}
-        </h3>
-        
-        {/* We use one AnimatePresence for the list items, but separate keys for the containers to handle tab switching */}
-        {activeTab === 'todo' ? (
-          <motion.div
-            key="todo-container"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.2 }}
-            className="space-y-1"
+        {[
+          { id: 'todo', Icon: Zap, label: 'ATTACK', color: '#92E82A' },
+          { id: 'avoid', Icon: Shield, label: 'DEFENSE', color: '#FC6C74' },
+        ].map(({ id, Icon, label, color }) => (
+          <button
+            key={id}
+            onClick={() => setActiveTab(id)}
+            className="flex-1 flex items-center justify-center gap-2 py-3 relative z-10 transition-colors duration-200 text-[11px] font-bold tracking-widest uppercase drop-shadow-md"
+            style={{ color: activeTab === id ? color : 'rgba(255,255,255,0.5)' }}
           >
+            <Icon size={14} />
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* ───── TASK LIST (Continuous Timeline) ───── */}
+      <div className="flex-1 overflow-y-auto min-h-0 px-5 relative z-0 scrollbar-hide pb-10">
+
+        <div className="sticky top-0 z-20 bg-gradient-to-b from-black/90 via-black/60 to-transparent pt-2 pb-6 mb-2">
+          <p className="text-[9px] font-bold tracking-[0.2em] uppercase text-white/50 drop-shadow-md">
+            {activeTab === 'todo' ? 'Timeline Directives' : 'Active Threats'}
+          </p>
+        </div>
+
+        {activeTab === 'todo' ? (
+          <motion.div key="todo" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}>
             <AnimatePresence mode="popLayout">
-              {activeTodos.map(task => (
-                <TaskCard 
-                  key={task.id} 
-                  task={task} 
-                  type="todo" 
-                  onComplete={completeTodo} 
-                  onDelete={deleteTask}
-                />
+              {activeTodos.map((task, idx) => (
+                <TaskCard key={task.id} task={task} type="todo" index={idx} onComplete={completeTodo} onDelete={deleteTask} />
               ))}
             </AnimatePresence>
           </motion.div>
         ) : (
-          <motion.div
-            key="avoid-container"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
-            transition={{ duration: 0.2 }}
-            className="space-y-1"
-          >
+          <motion.div key="avoid" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}>
             <AnimatePresence mode="popLayout">
-              {notTodos.map(task => (
-                <TaskCard 
-                  key={task.id} 
-                  task={task} 
-                  type="avoid" 
-                  onFail={failNotTodo} 
-                  onDelete={deleteTask}
-                />
+              {notTodos.map((task, idx) => (
+                <TaskCard key={task.id} task={task} type="avoid" index={idx} onFail={failNotTodo} onDelete={deleteTask} />
               ))}
             </AnimatePresence>
           </motion.div>
         )}
 
+        {/* Empty state */}
         {!hasTasks && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="text-center text-gray-500 mt-10 border border-dashed border-white/10 rounded-2xl p-8 bg-white/5 backdrop-blur-sm"
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+            className="mt-6 rounded-3xl p-10 text-center bg-black/30 backdrop-blur-sm border border-dashed border-white/10 shadow-xl"
           >
-            <p className="text-sm font-medium">No active missions.</p>
-            <p className="text-xs mt-1 opacity-50">System standby...</p>
+            <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-3 border border-white/5">
+              {activeTab === 'todo' ? <Zap size={20} className="text-white/40" /> : <Shield size={20} className="text-white/40" />}
+            </div>
+            <p className="text-sm font-bold text-gray-300">Timeline is clear</p>
+            <p className="text-xs mt-1 text-gray-500 font-medium">No active tasks for this filter.</p>
           </motion.div>
         )}
       </div>
+      
     </div>
   );
 };

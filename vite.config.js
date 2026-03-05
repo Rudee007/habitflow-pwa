@@ -7,8 +7,17 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+import { visualizer } from 'rollup-plugin-visualizer'
+
+
 export default defineConfig({
   plugins: [
+      visualizer({
+      open: true,
+      filename: "bundle-report.html",
+      gzipSize: true,
+      brotliSize: true
+    }),
     react(),
     VitePWA({
       registerType: 'autoUpdate',
