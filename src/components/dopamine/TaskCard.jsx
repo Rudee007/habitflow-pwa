@@ -68,7 +68,7 @@ export const TaskCard = ({ task, onComplete, onFail, onDelete, type = 'todo', in
             ) : (
               <div className="flex items-center gap-1 text-[10px] text-orange-500 font-bold">
                 <Zap size={10} />
-                <span>-{task.cost} CREDITS</span>
+                <span>-{task.cost} SCORE</span>
               </div>
             )}
           </div>
