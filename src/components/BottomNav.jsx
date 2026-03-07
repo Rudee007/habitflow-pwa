@@ -1,12 +1,12 @@
 // src/components/BottomNav.jsx
 import React from 'react';
 import { LayoutGrid, Gamepad2, PieChart, Plus, Settings2 } from 'lucide-react';
-import { clsx } from 'clsx'; // Make sure to install clsx if not present, or use template literals
+import { clsx } from 'clsx'; 
 
 function BottomNav({ activeTab, onTabChange }) {
   const tabs = [
     { id: 'home', icon: LayoutGrid, label: 'Habits' },
-    { id: 'Todo', icon: Gamepad2, label: 'Zone' }, // Renamed to "Zone" for cool factor
+    { id: 'Todo', icon: Gamepad2, label: 'Zone' },
     { id: 'add', icon: Plus, label: 'Add', isSpecial: true },
     { id: 'analytics', icon: PieChart, label: 'Stats' },
     { id: 'settings', icon: Settings2, label: 'System' },
@@ -20,7 +20,6 @@ function BottomNav({ activeTab, onTabChange }) {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
 
-          // Special "Add" Button (Floating Center)
           if (tab.isSpecial) {
             return (
               <button
