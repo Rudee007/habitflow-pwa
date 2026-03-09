@@ -8,7 +8,7 @@ import { format, startOfWeek, endOfWeek, eachDayOfInterval } from 'date-fns';
 function timeStringToNumber(timeStr) {
   if (!timeStr) return null;
   const [h, m] = timeStr.split(':').map(Number);
-  return h + (m || 0) / 60; // 0–24
+  return h + (m || 0) / 60; 
 }
 
 function numberToTimeString(value) {
@@ -27,16 +27,14 @@ const useHabitStore = create((set, get) => ({
   selectedDate: new Date(),
   isLoading: true,
   lastSync: null,
-  isSyncing: false, // NEW: Track sync status
+  isSyncing: false, 
   
-  // Initialize store
   initialize: () => {
     const habits = storageService.getHabits();
     const lastSync = storageService.getLastSync();
     set({ habits, lastSync, isLoading: false });
   },
 
-  // Habits
   setHabits: (habits) => set({ habits }),
   
   addHabit: (habit) => {
@@ -60,12 +58,10 @@ const useHabitStore = create((set, get) => ({
   toggleHabit: (habitId, date = getTodayKey()) => {
     const newValue = storageService.toggleHabit(habitId, date);
     
-    // Trigger haptic feedback
     if (navigator.vibrate) {
       navigator.vibrate(newValue ? [10, 50, 10] : [10]);
     }
     
-    // Force re-render by updating timestamp
     set({ lastSync: new Date().toISOString() });
     return newValue;
   },
@@ -78,7 +74,6 @@ const useHabitStore = create((set, get) => ({
     return storageService.getHabitMonth(habitId, date);
   },
 
-  // Get completions for current week
   getHabitWeek: (habitId, date = new Date()) => {
     const start = startOfWeek(date, { weekStartsOn: 0 }); // Sunday
     const end = endOfWeek(date, { weekStartsOn: 0 });
@@ -122,7 +117,6 @@ const useHabitStore = create((set, get) => ({
     };
   },
 
-  // Month navigation
   setCurrentMonth: (date) => set({ currentMonth: date }),
   
   nextMonth: () => {
@@ -139,7 +133,6 @@ const useHabitStore = create((set, get) => ({
     set({ currentMonth: prevMonth });
   },
 
-  // Sleep tracking
   saveSleep: (dateKey, payload) => {
     const success = storageService.saveSleep(dateKey, payload);
     if (success) {
@@ -177,7 +170,6 @@ const useHabitStore = create((set, get) => ({
     };
   },
   
-  // Goals
   saveGoals: (goals) => {
     const success = storageService.saveGoals(goals);
     if (success) {
@@ -201,7 +193,7 @@ const useHabitStore = create((set, get) => ({
 
   clearAll: () => {
     localStorage.removeItem('habitTracker_v1');
-    localStorage.removeItem('habitTrackerSpreadsheetId'); // Also clear Google Sheets ID
+    localStorage.removeItem('habitTrackerSpreadsheetId'); 
     storageService.init?.();
     set({
       habits: [],
