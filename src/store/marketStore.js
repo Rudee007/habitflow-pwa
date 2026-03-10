@@ -9,7 +9,6 @@ const generateId = (prefix) => `${prefix}-${crypto.randomUUID ? crypto.randomUUI
 
 const useMarketStore = create((set, get) => ({
 
-  // --- STATE ---
   points: 0,
   inventory: [],
   shopItems: [],
@@ -19,7 +18,6 @@ const useMarketStore = create((set, get) => ({
   streak: 0,
   rank: 'Apprentice',
 
-  // --- INITIALIZATION ---
   initialize: () => {
     try {
       const economy = marketStorageService.getEconomy();

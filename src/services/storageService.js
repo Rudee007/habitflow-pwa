@@ -26,7 +26,6 @@ class StorageService {
     }
   }
 
-  // Check if localStorage is available
   isAvailable() {
     try {
       const test = '__storage_test__';

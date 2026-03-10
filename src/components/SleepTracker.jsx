@@ -1,7 +1,6 @@
-// src/components/SleepTracker.jsx
 import React, { useState, useMemo } from 'react';
 import { format, subDays, eachDayOfInterval } from 'date-fns';
-import { Moon, Clock } from 'lucide-react';
+import { Moon, Clock, CalendarDays } from 'lucide-react';
 import {
   LineChart,
   Line,
@@ -13,6 +12,7 @@ import {
 import useHabitStore from '../store/habitStore';
 import SleepMonthDetails from './SleepMonthDetails';
 import { getTodayKey } from '../utils/dateHelpers';
+import { clsx } from 'clsx';
 
 // Same mapping idea as monthly view
 function mapTimeForGraph(timeStr) {
@@ -33,6 +33,7 @@ function mapTimeForGraph(timeStr) {
 }
 
 function SleepTracker() {
+  const [sleepDate, setSleepDate] = useState(getTodayKey()); // Defaults to Today
   const [sleepTime, setSleepTime] = useState(''); // "HH:mm"
   const [showDetails, setShowDetails] = useState(false);
 
@@ -61,11 +62,13 @@ function SleepTracker() {
   }, [sleepData]);
 
   const handleSave = () => {
-    if (!sleepTime) return;
+    if (!sleepTime || !sleepDate) return;
 
-    const dateKey = getTodayKey(); // always today
-    saveSleep(dateKey, { time: sleepTime });
+    saveSleep(sleepDate, { time: sleepTime });
+    
+    // Reset forms after saving
     setSleepTime('');
+    setSleepDate(getTodayKey());
 
     if (navigator.vibrate) {
       navigator.vibrate([10, 50, 10]);
@@ -76,11 +79,12 @@ function SleepTracker() {
     if (!active || !payload?.length) return null;
     const data = payload[0].payload;
     return (
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-3 shadow-lg">
-        <p className="text-white font-semibold">
+      <div className="bg-[#1C1C1E] border border-white/10 rounded-xl p-3 shadow-xl backdrop-blur-md">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">{data.label}</p>
+        <p className="text-white font-black text-sm">
           {data.timeLabel === '--:--'
-            ? 'No entry'
-            : `Sleep at ${data.timeLabel}`}
+            ? 'NO DATA LOGGED'
+            : `LOGGED AT ${data.timeLabel}`}
         </p>
       </div>
     );
@@ -88,93 +92,113 @@ function SleepTracker() {
 
   return (
     <>
-      <div
-        className="bg-gray-900 rounded-3xl p-6 border border-gray-800"
-      >
+      <div className="bg-[#0A0A0A] rounded-[24px] p-6 border border-white/5 shadow-lg relative overflow-hidden group">
+        
+        {/* Subtle Background Glow */}
+        <div className="absolute top-0 right-0 w-32 h-32 bg-[#B47EFF]/10 rounded-full blur-[50px] pointer-events-none transition-opacity group-hover:opacity-70" />
+
         {/* Header */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-6 relative z-10">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-accent-purple/20 flex items-center justify-center">
-              <Moon size={24} className="text-accent-purple" />
+            <div className="w-12 h-12 rounded-xl bg-[#B47EFF]/10 border border-[#B47EFF]/20 flex items-center justify-center shadow-inner">
+              <Moon size={22} className="text-[#B47EFF]" />
             </div>
             <div>
-              <h3 className="text-white text-lg font-semibold">Sleep time</h3>
-              <p className="text-gray-400 text-sm">
-                Log when you went to bed
+              <h3 className="text-white text-lg font-black tracking-tight">Sleep Log</h3>
+              <p className="text-gray-500 text-[11px] font-bold uppercase tracking-wider">
+                Circadian Rhythm
               </p>
             </div>
           </div>
           <button
             onClick={() => setShowDetails(true)}
-            className="text-xs px-3 py-1.5 rounded-full bg-gray-800 text-gray-300 hover:text-white hover:bg-gray-700 transition-colors"
+            className="text-[10px] font-bold uppercase tracking-widest px-4 py-2 rounded-lg bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 border border-white/5 transition-colors active:scale-95"
           >
-            Monthly view
+            History
           </button>
         </div>
 
         {/* Weekly line chart */}
-        <div className="mb-5 rounded-2xl bg-gray-900/60 border border-gray-800 px-3 py-3">
+        <div className="mb-6 rounded-2xl bg-[#13161F] border border-white/5 px-3 py-4 relative z-10">
           <div className="h-32">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData}>
                 <XAxis
                   dataKey="label"
                   stroke="#636366"
-                  style={{ fontSize: 11 }}
+                  style={{ fontSize: 9, fontWeight: 'bold', textTransform: 'uppercase' }}
                   tickLine={false}
                   axisLine={false}
+                  dy={10}
                 />
                 <YAxis
                   stroke="#636366"
-                  style={{ fontSize: 11 }}
+                  style={{ fontSize: 9, fontWeight: 'bold' }}
                   tickLine={false}
                   axisLine={false}
-                  domain={[0, 21]}         // 0–12 normal, 16–21 after‑midnight
-                  ticks={[0, 3, 6, 9, 12, 16, 18, 20]}
+                  domain={[0, 21]}
+                  ticks={[0, 6, 12, 18]}
+                  dx={-10}
                 />
-                <Tooltip content={<CustomTooltip />} />
+                <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 2, strokeDasharray: '4 4' }} />
                 <Line
-                  type="natural"
+                  type="monotone"
                   dataKey="value"
                   stroke="#B47EFF"
-                  strokeWidth={2.5}
-                  dot={{ r: 3, strokeWidth: 0 }}
-                  activeDot={{ r: 5, stroke: '#FFFFFF', strokeWidth: 1 }}
+                  strokeWidth={3}
+                  dot={{ r: 4, fill: '#13161F', stroke: '#B47EFF', strokeWidth: 2 }}
+                  activeDot={{ r: 6, fill: '#B47EFF', stroke: '#FFFFFF', strokeWidth: 2 }}
                 />
               </LineChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Input – time only, more guided UI */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Clock size={16} className="text-gray-400" />
-              <span className="text-sm text-gray-300">
-                What time are you going to sleep today?
-              </span>
+        {/* Input Area (Date & Time Selection) */}
+        <div className="space-y-3 relative z-10">
+          
+          <div className="grid grid-cols-2 gap-3">
+            {/* Date Picker */}
+            <div className="bg-[#13161F] border border-white/5 rounded-xl p-3 flex flex-col gap-1 focus-within:border-[#B47EFF]/50 transition-colors">
+              <div className="flex items-center gap-1.5 text-[#B47EFF]/70">
+                <CalendarDays size={12} />
+                <span className="text-[9px] font-bold uppercase tracking-widest">Date</span>
+              </div>
+              <input
+                type="date"
+                value={sleepDate}
+                max={getTodayKey()} // Prevents logging future dates
+                onChange={(e) => setSleepDate(e.target.value)}
+                className="bg-transparent text-white text-sm font-black focus:outline-none [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:opacity-50 hover:[&::-webkit-calendar-picker-indicator]:opacity-100 transition-opacity w-full cursor-pointer"
+              />
             </div>
-          </div>
 
-          <div className="flex gap-3">
-            <div className="flex-1 bg-gray-800 border border-gray-700 rounded-2xl px-4 py-3 flex items-center gap-3">
-              <span className="text-xs text-gray-400">Time</span>
+            {/* Time Picker */}
+            <div className="bg-[#13161F] border border-white/5 rounded-xl p-3 flex flex-col gap-1 focus-within:border-[#B47EFF]/50 transition-colors">
+              <div className="flex items-center gap-1.5 text-[#B47EFF]/70">
+                <Clock size={12} />
+                <span className="text-[9px] font-bold uppercase tracking-widest">Time</span>
+              </div>
               <input
                 type="time"
                 value={sleepTime}
                 onChange={(e) => setSleepTime(e.target.value)}
-                className="flex-1 bg-transparent text-white text-sm focus:outline-none [&::-webkit-calendar-picker-indicator]:invert"
+                className="bg-transparent text-white text-sm font-black focus:outline-none [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:opacity-50 hover:[&::-webkit-calendar-picker-indicator]:opacity-100 transition-opacity w-full cursor-pointer"
               />
             </div>
           </div>
 
           <button
             onClick={handleSave}
-            disabled={!sleepTime}
-            className="w-full bg-accent-purple hover:bg-accent-purple-light disabled:bg-gray-800 disabled:text-gray-500 text-white font-semibold py-3 rounded-2xl transition-all duration-200 active:scale-95"
+            disabled={!sleepTime || !sleepDate}
+            className={clsx(
+              "w-full py-4 mt-2 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98] border font-black text-xs tracking-widest uppercase shadow-lg",
+              (!sleepTime || !sleepDate)
+                ? "bg-white/5 text-gray-600 border-white/5 cursor-not-allowed"
+                : "bg-[#B47EFF] text-[#13161F] hover:bg-[#C4A2FF] border-transparent shadow-[0_0_15px_rgba(180,126,255,0.3)]"
+            )}
           >
-            Log sleep time
+            Log Sleep Data
           </button>
         </div>
       </div>

@@ -1,6 +1,5 @@
-// src/components/StreakCounter.jsx
 import React from 'react';
-import { Flame, Trophy, Calendar } from 'lucide-react';
+import { Flame, Trophy, Calendar, PartyPopper, Zap, Star, Crown, Target } from 'lucide-react';
 import { motion } from 'framer-motion';
 import useHabitStore from '../store/habitStore';
 import { getTodayKey } from '../utils/dateHelpers';
@@ -55,142 +54,133 @@ function StreakCounter() {
   const todayPercentage = totalHabits > 0 ? Math.round((completedToday / totalHabits) * 100) : 0;
 
   return (
-    <div className="bg-gray-900 rounded-3xl p-6 border border-gray-800 relative overflow-hidden">
-      {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 via-red-500/5 to-transparent pointer-events-none" />
+    <div className="bg-[#1C1C1E] rounded-[28px] p-6 border border-white/5 relative overflow-hidden shadow-xl">
       
-      {/* Animated flame background */}
-      {maxCurrentStreak > 0 && (
-        <motion.div
-          animate={{ 
-            scale: [1, 1.1, 1],
-            opacity: [0.3, 0.5, 0.3]
-          }}
-          transition={{ duration: 3, repeat: Infinity }}
-          className="absolute -right-8 -top-8 w-32 h-32 bg-orange-500/20 rounded-full blur-3xl"
-        />
-      )}
-      
-      <div className="relative space-y-6">
-        {/* Main Streak Section */}
-        <div>
-          <div className="flex items-center gap-3 mb-4">
-            <motion.div 
-              animate={maxCurrentStreak > 0 ? { 
-                rotate: [0, -5, 5, -5, 0],
-              } : {}}
-              transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-              className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center shadow-lg"
-            >
-              <Flame size={28} className="text-white" />
-            </motion.div>
-            <div>
-              <h3 className="text-white text-xl font-bold">Current Streak</h3>
-              <p className="text-gray-400 text-sm">
-                {topHabit ? topHabit.name : 'Start a habit!'}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-baseline gap-3 mb-3">
-            <motion.span 
-              key={maxCurrentStreak}
-              initial={{ scale: 1.5, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ type: "spring", damping: 15 }}
-              className="text-6xl font-black bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent"
-            >
-              {maxCurrentStreak}
-            </motion.span>
-            <span className="text-2xl text-gray-400 font-semibold">
-              {maxCurrentStreak === 1 ? 'day' : 'days'}
-            </span>
-            {maxCurrentStreak > 0 && (
-              <motion.span
-                animate={{ rotate: [0, 10, -10, 0] }}
-                transition={{ duration: 1, repeat: Infinity, repeatDelay: 2 }}
-              >
-                🔥
-              </motion.span>
-            )}
-          </div>
-
-          {/* Personal Best */}
-          {maxBestStreak > maxCurrentStreak && (
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-2 text-sm"
-            >
-              <Trophy size={16} className="text-yellow-500" />
-              <p className="text-gray-400">
-                Personal best: <span className="text-yellow-500 font-bold">{maxBestStreak} days</span>
-              </p>
-            </motion.div>
-          )}
-
-          {/* Milestone messages */}
-          {maxCurrentStreak === 0 && (
-            <p className="text-gray-500 text-sm">
-              Complete a habit to start your streak! 🚀
-            </p>
-          )}
-          {maxCurrentStreak >= 7 && maxCurrentStreak < 14 && (
-            <p className="text-orange-400 text-sm font-medium">
-              🌟 One week strong! Keep going!
-            </p>
-          )}
-          {maxCurrentStreak >= 14 && maxCurrentStreak < 21 && (
-            <p className="text-orange-400 text-sm font-medium">
-              ⚡ Two weeks! You're unstoppable!
-            </p>
-          )}
-          {maxCurrentStreak >= 21 && maxCurrentStreak < 30 && (
-            <p className="text-orange-400 text-sm font-medium">
-              💪 Habit forming! 21 days milestone reached!
-            </p>
-          )}
-          {maxCurrentStreak >= 30 && (
-            <p className="text-orange-400 text-sm font-medium">
-              👑 Legendary! 30+ day streak!
-            </p>
-          )}
+      {/* ── Header Section ── */}
+      <div className="flex items-center gap-4 mb-4">
+        {/* Soft Orange Squircle Icon Box */}
+        <div className="w-[52px] h-[52px] rounded-[16px] bg-gradient-to-br from-[#FF9500] to-[#E65C00] flex items-center justify-center shadow-[0_4px_15px_rgba(255,149,0,0.3)]">
+          <Flame size={26} className="text-white" strokeWidth={2.5} />
         </div>
-
-        {/* Today's Progress */}
-        <div className="pt-6 border-t border-gray-800">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <Calendar size={18} className="text-blue-400" />
-              <span className="text-gray-300 font-semibold">Today's Progress</span>
-            </div>
-            <span className="text-blue-400 font-bold">
-              {completedToday}/{totalHabits}
-            </span>
-          </div>
-
-          {/* Progress bar */}
-          <div className="h-2.5 bg-gray-800 rounded-full overflow-hidden relative">
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${todayPercentage}%` }}
-              transition={{ duration: 1, ease: "easeOut" }}
-              className="h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-400 relative"
-            >
-              {/* Shine effect */}
-              <motion.div
-                animate={{ x: [-100, 200] }}
-                transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
-                className="absolute inset-0 w-1/2 bg-gradient-to-r from-transparent via-white/40 to-transparent"
-              />
-            </motion.div>
-          </div>
-
-          <p className="text-gray-500 text-xs mt-2">
-            {todayPercentage === 100 ? '🎉 All done for today!' : `${todayPercentage}% completed`}
+        <div>
+          <h3 className="text-white text-[18px] font-bold tracking-wide leading-tight">Current Streak</h3>
+          <p className="text-[#8E8E93] text-[13px] font-medium mt-0.5">
+            {topHabit ? topHabit.name : 'Start a habit!'}
           </p>
         </div>
       </div>
+
+      {/* ── Main Stat (Big Number) ── */}
+      <div className="flex items-baseline gap-2 mb-2">
+        <motion.span 
+          key={maxCurrentStreak}
+          initial={{ scale: 1.2, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: "spring", damping: 15 }}
+          className="text-[64px] font-black bg-gradient-to-b from-[#FF9500] to-[#FF3B30] bg-clip-text text-transparent leading-none"
+        >
+          {maxCurrentStreak}
+        </motion.span>
+        <span className="text-[22px] text-[#8E8E93] font-bold tracking-tight pb-1">
+          {maxCurrentStreak === 1 ? 'day' : 'days'}
+        </span>
+        
+        {/* Replaced Emoji with animated filled Lucide icon */}
+        {maxCurrentStreak > 0 && (
+          <motion.div
+            animate={{ rotate: [0, 10, -10, 0], scale: [1, 1.1, 1] }}
+            transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
+            className="pb-2 pl-1"
+          >
+            <Flame size={24} className="text-[#FF9500] fill-[#FF9500]" />
+          </motion.div>
+        )}
+      </div>
+
+      {/* ── Milestones & Personal Best ── */}
+      <div className="flex flex-col gap-1.5 mb-5 min-h-[20px]">
+        {maxBestStreak > maxCurrentStreak && maxCurrentStreak > 0 && (
+          <div className="flex items-center gap-1.5 text-xs font-medium text-[#8E8E93]">
+            <Trophy size={12} className="text-yellow-500" />
+            <span>Personal best: <strong className="text-white">{maxBestStreak}</strong></span>
+          </div>
+        )}
+
+        {/* Dynamic Milestone Messages using Lucide Icons */}
+        {maxCurrentStreak === 0 && (
+          <div className="flex items-center gap-1.5 text-xs text-[#8E8E93] font-medium">
+            <Target size={12} /> <span>Complete a task to start!</span>
+          </div>
+        )}
+        {maxCurrentStreak >= 7 && maxCurrentStreak < 14 && (
+          <div className="flex items-center gap-1.5 text-xs text-[#FF9500] font-medium">
+            <Flame size={12} className="fill-[#FF9500]" /> <span>One week strong! Keep going!</span>
+          </div>
+        )}
+        {maxCurrentStreak >= 14 && maxCurrentStreak < 21 && (
+          <div className="flex items-center gap-1.5 text-xs text-yellow-500 font-medium">
+            <Zap size={12} className="fill-yellow-500" /> <span>Two weeks! Unstoppable!</span>
+          </div>
+        )}
+        {maxCurrentStreak >= 21 && maxCurrentStreak < 30 && (
+          <div className="flex items-center gap-1.5 text-xs text-orange-400 font-medium">
+            <Star size={12} className="fill-orange-400" /> <span>Habit forming! 21 days!</span>
+          </div>
+        )}
+        {maxCurrentStreak >= 30 && (
+          <div className="flex items-center gap-1.5 text-xs text-yellow-400 font-medium">
+            <Crown size={12} className="fill-yellow-400" /> <span>Legendary! 30+ day streak!</span>
+          </div>
+        )}
+      </div>
+
+      {/* ── Subtle Divider ── */}
+      <div className="h-[1px] w-full bg-white/5 mb-4" />
+
+      {/* ── Today's Progress Section ── */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2 text-[#8E8E93]">
+            <Calendar size={16} />
+            <span className="text-white font-bold text-[15px]">Today's Progress</span>
+          </div>
+          <span className="text-[#32ADE6] font-bold text-[15px]">
+            {completedToday}/{totalHabits}
+          </span>
+        </div>
+
+        {/* Progress bar */}
+        <div className="h-[8px] bg-[#2C2C2E] rounded-full overflow-hidden relative mb-2.5">
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: `${todayPercentage}%` }}
+            transition={{ duration: 1, ease: "easeOut" }}
+            className="h-full rounded-full bg-gradient-to-r from-[#0A84FF] to-[#32ADE6] relative"
+          >
+            {/* Soft Shine Effect */}
+            <motion.div
+              animate={{ x: [-100, 300] }}
+              transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 2 }}
+              className="absolute inset-0 w-1/2 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+            />
+          </motion.div>
+        </div>
+
+        {/* Footer Note with Icon */}
+        <div className="flex items-center gap-1.5">
+          {todayPercentage === 100 && totalHabits > 0 ? (
+            <PartyPopper size={14} className="text-[#32ADE6]" />
+          ) : (
+             <div className="w-1.5 h-1.5 rounded-full bg-[#8E8E93] ml-0.5" />
+          )}
+          <p className="text-[#8E8E93] text-[12px] font-medium">
+            {todayPercentage === 100 && totalHabits > 0 
+              ? 'All done for today!' 
+              : `${todayPercentage}% completed`}
+          </p>
+        </div>
+      </div>
+
     </div>
   );
 }

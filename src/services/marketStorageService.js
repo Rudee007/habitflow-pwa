@@ -9,7 +9,6 @@ const KEYS = {
 };
 
 const marketStorageService = {
-  // ... (keep getEconomy, saveEconomy, getShopItems, saveShopItems as is) ...
   getEconomy: () => {
     try {
       const data = localStorage.getItem(KEYS.ECONOMY);
@@ -45,15 +44,16 @@ const marketStorageService = {
     const savedTasks = localStorage.getItem(KEYS.TASKS);
     let tasks = savedTasks ? JSON.parse(savedTasks) : { todos: [], notTodos: [] };
 
+    // BUG FIX: Day Reset Logic
     if (lastReset !== today) {
       console.log("🌞 New Day Detected: Resetting Daily Tasks...");
       
-      const freshTodos = (tasks.todos || []).map(t => ({ 
-        ...t, 
-        completed: false 
-      }));
+      // 1. CLEAR MISSIONS (TODOS) completely for a fresh slate.
+      // (If you wanted unfinished tasks to roll over instead, you would do: 
+      // const freshTodos = (tasks.todos || []).filter(t => !t.completed); )
+      const freshTodos = []; 
       
-      // RESET NOT-TO-DOS: Reset failCount to 0 for the new day
+      // 2. KEEP THREATS (NOT-TODOS), but reset their failCount to 0 for the new day
       const freshNotTodos = (tasks.notTodos || []).map(t => ({ 
         ...t, 
         failCount: 0 
