@@ -8,18 +8,15 @@ import { format, subDays } from 'date-fns';
 function StreakCounter() {
   const { habits, getHabitStats, currentMonth, isHabitCompleted } = useHabitStore();
 
-  // Calculate true current streak (checking consecutive days including across months)
   const calculateTrueStreak = (habitId) => {
     let streak = 0;
     let currentDate = new Date();
     
-    // Check last 365 days for streak
     for (let i = 0; i < 365; i++) {
       const dateKey = format(subDays(currentDate, i), 'yyyy-MM-dd');
       if (isHabitCompleted(habitId, dateKey)) {
         streak++;
       } else {
-        // Allow 1 day grace for "today" if not yet completed
         if (i === 0) continue;
         break;
       }
@@ -28,7 +25,6 @@ function StreakCounter() {
     return streak;
   };
 
-  // Get all streaks
   const habitStreaks = habits.map(habit => {
     const stats = getHabitStats(habit.id, currentMonth);
     const trueStreak = calculateTrueStreak(habit.id);
