@@ -43,7 +43,6 @@ export const WorkEngine = ({ onNavigate }) => {
   const isPast = (d) => d < today && !isSameDay(d, today);
   const monthLabel = selectedDate.toLocaleString('default', { month: 'long', year: 'numeric' });
 
-  // Auto-scroll the calendar
   useEffect(() => {
     if (activeDateRef.current && scrollRef.current) {
       const container = scrollRef.current;
@@ -53,7 +52,6 @@ export const WorkEngine = ({ onNavigate }) => {
     }
   }, [selectedDate]);
 
-  // Reset expandAll when switching tabs
   useEffect(() => {
     setExpandAll(false);
   }, [activeTab]);
@@ -61,7 +59,6 @@ export const WorkEngine = ({ onNavigate }) => {
   return (
     <div className="flex flex-col h-full bg-transparent pb-16 overflow-hidden relative" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif' }}>
       
-      {/* ───── HEADER ───── */}
       <div className="flex justify-between items-center px-5 pt-8 mb-6 shrink-0 z-10">
         <div>
           <p className="text-[10px] font-semibold tracking-[0.14em] uppercase text-gray-500 mb-1 drop-shadow-md">
@@ -93,7 +90,6 @@ export const WorkEngine = ({ onNavigate }) => {
         </div>
       </div>
 
-      {/* ───── CALENDAR STRIP ───── */}
       <div className="shrink-0 px-5 mb-5 relative z-10">
         <div className="flex items-center justify-between mb-3">
           <button className="flex items-center gap-1 text-sm font-bold text-white drop-shadow-md">
@@ -136,7 +132,6 @@ export const WorkEngine = ({ onNavigate }) => {
         </div>
       </div>
 
-      {/* ───── ATTACK / DEFENSE TOGGLE ───── */}
       <div className="mx-5 flex rounded-[1.2rem] mb-5 shrink-0 p-1 bg-black/40 backdrop-blur-md border border-white/10 relative z-10 shadow-lg">
         <motion.div 
           className="absolute top-1 bottom-1 rounded-xl bg-white/10 shadow-inner"
