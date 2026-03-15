@@ -28,7 +28,6 @@ export const WorkEngine = ({ onNavigate }) => {
   const [activeTab, setActiveTab] = useState('todo');
   const [selectedDate, setSelectedDate] = useState(new Date(today));
   
-  // NEW: Global expand/collapse state
   const [expandAll, setExpandAll] = useState(false);
   
   const scrollRef = useRef(null);

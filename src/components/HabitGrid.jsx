@@ -13,7 +13,6 @@ function HabitGrid() {
 
   const todayKey = getTodayKey();
 
-  // Sort habits: incomplete first, completed last
   const sortedHabits = [...habits].sort((a, b) => {
     const aComplete = isHabitCompleted(a.id, todayKey);
     const bComplete = isHabitCompleted(b.id, todayKey);
@@ -28,7 +27,6 @@ function HabitGrid() {
 
   return (
     <>
-      {/* Toast notifications */}
       <Toaster position="top-center" />
 
       <div className="space-y-3 pb-6">
