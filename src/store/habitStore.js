@@ -274,6 +274,20 @@ const useHabitStore = create((set, get) => ({
     }
   },
 
+  deleteHabit: (habitId) =>{
+    const success = storageService.deleteHabit(habitId);
+
+    if(success){
+
+      const habits = storageService.getHabits();
+      set({
+        habits,
+        lastSync: new Date().toString()
+      })
+    }
+    return success;
+  },
+
   /**
    * Check Google Sheets connection status
    */

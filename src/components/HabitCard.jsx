@@ -1,6 +1,5 @@
-// src/components/HabitCard.jsx - With Undo Feature
-import React, { useState } from 'react';
-import { ChevronRight, Flame, Sparkles, TrendingUp, RotateCcw } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ChevronRight, Flame, Sparkles, TrendingUp, RotateCcw, Trash2, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import useHabitStore from '../store/habitStore';
@@ -20,9 +19,12 @@ const HABIT_ICON_MAP = {
 };
 
 function HabitCard({ habit, index, onOpenDetails }) {
-  const { currentMonth, toggleHabit, getHabitStats, isHabitCompleted } = useHabitStore();
+  const { currentMonth, toggleHabit, getHabitStats, isHabitCompleted, deleteHabit } = useHabitStore();
   const [particles, setParticles] = useState([]);
   const [ripples, setRipples] = useState([]);
+  
+  // NEW: State for inline delete confirmation
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 
   const todayKey = getTodayKey();
   const completedToday = isHabitCompleted(habit.id, todayKey);
@@ -30,31 +32,49 @@ function HabitCard({ habit, index, onOpenDetails }) {
   const color = getHabitColor(index);
   const Icon = HABIT_ICON_MAP[habit.icon] || Target;
 
+  // Auto-reset the delete confirmation after 3 seconds
+  useEffect(() => {
+    let timeout;
+    if (isConfirmingDelete) {
+      timeout = setTimeout(() => {
+        setIsConfirmingDelete(false);
+      }, 3000);
+    }
+    return () => clearTimeout(timeout);
+  }, [isConfirmingDelete]);
+
   const handleToggleCompletion = (e) => {
     e.stopPropagation();
 
-    // Haptic feedback
     if (navigator.vibrate) {
       navigator.vibrate(completedToday ? [10] : [20, 40, 20]);
     }
 
     if (!completedToday) {
-      // Completing - show celebration
       createParticles(e);
       createRipple(e);
-
-      // Toggle the habit
       toggleHabit(habit.id, todayKey);
-
-      // Get updated stats
-      const newStats = getHabitStats(habit.id, currentMonth);
-      const newStreak = newStats.currentStreak;
-
     } else {
-      // Undoing - simple feedback
       toggleHabit(habit.id, todayKey);
-
     }
+  };
+
+  // NEW: Sleek double-tap delete logic
+  const handleDelete = (e) => {
+    e.stopPropagation(); 
+    
+    if (!isConfirmingDelete) {
+      setIsConfirmingDelete(true);
+      if (navigator.vibrate) navigator.vibrate([10]); // Short tick for warning
+      return;
+    }
+    
+    // If already confirming, execute deletion
+    deleteHabit(habit.id);
+    toast.success('Protocol Deleted', { 
+      icon: '🗑️',
+      style: { background: '#1C1C1E', color: '#fff', border: '1px solid #2C2C2E' }
+    });
   };
 
   const createParticles = (e) => {
@@ -138,8 +158,8 @@ function HabitCard({ habit, index, onOpenDetails }) {
             </div>
           </div>
 
-          {/* Percentage + Arrow */}
-          <div className="flex items-center gap-2 flex-shrink-0">
+          {/* Percentage + INLINE DELETE BUTTON */}
+          <div className="flex items-center gap-3 flex-shrink-0">
             <div className="text-right">
               <p
                 className="text-xl font-bold leading-none"
@@ -148,7 +168,40 @@ function HabitCard({ habit, index, onOpenDetails }) {
                 {stats.percentage}%
               </p>
             </div>
-            <ChevronRight size={18} className="text-gray-600" />
+            
+            {/* INLINE DELETE CONFIRMATION BUTTON */}
+            <button
+              onClick={handleDelete}
+              className={`flex items-center justify-center h-9 px-2.5 rounded-xl transition-all duration-300 ${
+                isConfirmingDelete 
+                  ? 'bg-red-500/20 text-red-500 border border-red-500/30 w-auto gap-1.5' 
+                  : 'text-gray-600 hover:text-red-500 hover:bg-red-500/10 w-9 border border-transparent'
+              }`}
+            >
+              <AnimatePresence mode="wait">
+                {isConfirmingDelete ? (
+                  <motion.div 
+                    key="confirm"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    className="flex items-center gap-1.5"
+                  >
+                    <AlertTriangle size={14} />
+                    <span className="text-[10px] font-black tracking-widest uppercase">Sure?</span>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="trash"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                  >
+                    <Trash2 size={18} />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </button>
           </div>
         </div>
 
